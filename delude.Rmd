@@ -1,0 +1,147 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+R packages
+
+```{r}
+library(tidyverse)
+library(lattice)
+```
+
+# Data screening
+
+First we load the data, then select only *delude*:
+
+```{r}
+data_merged <- read.csv("./data/data_merged.csv", stringsAsFactors = T)
+
+data_delude <- subset(data_merged, verb=="delude")
+data_delude <- droplevels(data_delude)
+str(data_delude)
+```
+
+Inspect different variables via contingency tables:
+
+```{r}
+xtabs(~variety, data=data_delude)
+```
+
+
+```{r}
+xtabs(~corpus, data=data_delude)
+```
+
+```{r}
+xtabs(~genre, data=data_delude)
+```
+
+```{r}
+xtabs(~negation, data=data_delude)
+```
+
+```{r}
+xtabs(~transitivity, data=data_delude)
+```
+
+For YEAR, we use a graph:
+
+```{r fig.height=3, fig.width=3}
+histogram(~year, data=data_delude)
+```
+
+# Synchronic data
+
+Exclude COHA data:
+
+```{r}
+delude_syn <- subset(data_delude, corpus!="COHA")
+delude_syn <- droplevels(delude_syn)
+str(delude_syn)
+```
+
+
+Inspect different variables via contingency tables:
+
+```{r}
+xtabs(~variety, data=delude_syn)
+```
+
+
+```{r}
+xtabs(~corpus, data=delude_syn)
+```
+
+```{r}
+xtabs(~genre, data=delude_syn)
+```
+
+```{r}
+xtabs(~negation, data=delude_syn)
+```
+
+```{r}
+xtabs(~transitivity, data=delude_syn)
+```
+
+For YEAR, we use a graph:
+
+```{r fig.height=3, fig.width=3}
+histogram(delude_syn$year)
+```
+
+Break down YEAR by variety:
+
+```{r fig.height=3, fig.width=5}
+histogram(~year | variety, data=delude_syn)
+```
+
+
+
+## Cross-tabulations
+
+
+TRANSITIVITY x NEGATION
+
+```{r}
+xtabs(~transitivity + negation, data=delude_syn)
+```
+
+```{r}
+round(
+  prop.table(
+    xtabs(~ negation + transitivity, data=delude_syn), 
+    margin = 2),
+  2)
+```
+
+TRANSITIVITY x GENRE
+
+```{r}
+xtabs(~transitivity + genre, data=delude_syn)
+```
+
+```{r}
+round(
+  prop.table(
+    xtabs(~transitivity + genre, data=delude_syn), 
+    margin = 2),
+  2)
+```
+
+NEGATION x GENRE
+
+```{r}
+xtabs(~negation + genre, data=delude_syn)
+```
+
+```{r}
+round(
+  prop.table(
+    xtabs(~negation + genre, data=delude_syn), 
+    margin = 2),
+  2)
+```
+
+
