@@ -1,0 +1,753 @@
+---
+title: "Long-term diachronic perspective: Loss of interpretators in Fiction"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(effects)
+library(lattice)
+library(latticeExtra)
+library(vcd)
+library(car)
+library(arm)
+
+source("./r_utils/my_utils.R")
+
+all_data <- read.csv("./data/all_data.csv", stringsAsFactors = T)
+contrasts(all_data$variety) <- contr.sum(2)
+data_long <- subset(all_data, macro_genre=="fiction")
+```
+
+
+# Deceive
+
+## Data
+```{r}
+data_long_deceive <- subset(data_long, verb == "deceive")
+rownames(data_long_deceive) <- 1:nrow(data_long_deceive)
+```
+
+## Data inspection
+```{r}
+structable(variety ~ year_bins_40, data_long_deceive)
+```
+
+```{r fig.height=3, fig.width=4.5}
+data_long_deceive %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") + xlim(1700, 2020) +
+  labs(title="Deceive",
+       subtitle="Cases by Year and Variety (Fiction)")
+```
+
+
+## Model 
+```{r}
+m_long_deceive <- glm(
+  interpretator_present ~ year_c + variety, 
+  data=data_long_deceive, family="binomial")
+
+display(m_long_deceive)
+```
+
+## Model checking
+
+Residual plots
+```{r fig.height=2.5, fig.width=6}
+residualPlots(m_long_deceive, layout=c(1,3), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3, fig.width=5, warning=F}
+marginalModelPlots(m_long_deceive, layout=c(1,2))
+```
+
+Influence diagnostics
+```{r fig.height=4, fig.width=4}
+outlier_id <- influencePlot(m_long_deceive)
+```
+
+Effect of influential cases on coefficients + SEs
+```{r}
+outlier_id <- as.integer(rownames(outlier_id))
+
+m_long_deceive_1 <- update(m_long_deceive, subset=-outlier_id[1])
+m_long_deceive_2 <- update(m_long_deceive, subset=-outlier_id[2])
+m_long_deceive_3 <- update(m_long_deceive, subset=-outlier_id[3])
+m_long_deceive_4 <- update(m_long_deceive, subset=-outlier_id[4])
+m_long_deceive_all <- update(m_long_deceive, subset=-outlier_id)
+
+coef_change <- compareCoefs(
+  m_long_deceive, 
+  m_long_deceive_1,
+  m_long_deceive_2, 
+  m_long_deceive_3,
+  m_long_deceive_4,
+  m_long_deceive_all, digits=2)
+```
+
+
+```{r fig.height=2, fig.width=4}
+plot1 <- xyplot(as.numeric(coef_change[4,]) ~ 1:length(coef_change[4,]),
+       scales=list(x=list(at=1:7,labels=1:7)),
+       par.settings=my_settings, axis=axis_L, ylim=c(-2.1,.1), pch=19,
+       xlab.top="Year (95% CI)",
+       xlab="", ylab="",
+       panel=function(x,y,...){
+         panel.xyplot(x,y,...)
+         panel.abline(h=0, col="grey")
+         panel.arrows(x0=x, x1=x, 
+                      y0=y-2*as.numeric(coef_change[5,]), 
+                      y1=y+2*as.numeric(coef_change[5,]),
+                      code=3, angle=90, length=.03)
+       })
+plot2 <- xyplot(as.numeric(coef_change[7,]) ~ 1:length(coef_change[7,]),
+       scales=list(x=list(at=1:7,labels=1:7)),
+       par.settings=my_settings, axis=axis_L, ylim=c(-1,1), pch=19,
+       xlab.top="Variety (95% CI)",
+       xlab="", ylab="",
+       panel=function(x,y,...){
+         panel.xyplot(x,y,...)
+         panel.abline(h=0, col="grey")
+         panel.arrows(x0=x, x1=x, 
+                      y0=y-2*as.numeric(coef_change[8,]), 
+                      y1=y+2*as.numeric(coef_change[8,]),
+                      code=3, angle=90, length=.03)
+       })
+cowplot::plot_grid(plot1, plot2)
+```
+```{r}
+data_long_deceive[outlier_id,]
+```
+
+## Model visualization
+
+```{r fig.width=6, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_long_deceive, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=2, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "variety",
+  m_long_deceive, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=2, more=T)),
+  main="Variety", xlab="", ylab="")
+
+```
+
+
+
+```{r}
+deceive_effect_year_AmE <- effect(
+  "year_c",  m_long_deceive, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(subset(data_long_deceive, variety=="AmE")$year_c), 
+               max(subset(data_long_deceive, variety=="AmE")$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1=1)))
+
+deceive_effect_year_BrE <- effect(
+  "year_c",  m_long_deceive, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(subset(data_long_deceive, variety=="BrE")$year_c), 
+               max(subset(data_long_deceive, variety=="BrE")$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1=-1)))
+
+deceive_effect_variety <- effect(
+  "variety",  m_long_deceive, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    year_c=-as.numeric(coef(m_long_deceive)[1]/coef(m_long_deceive)[2]))))
+```
+
+```{r}
+data_long_deceive_BrE <- subset(
+  data_long_deceive, variety=="BrE")
+
+data_long_deceive_AmE <- subset(
+  data_long_deceive, variety=="AmE")
+```
+
+
+```{r fig.height=3.3, fig.width=3.3}
+x_breaks_AmE = seq(min(data_long_deceive_AmE$year_c), 
+               max(data_long_deceive_AmE$year_c), length.out=5)
+x_breaks_BrE = seq(min(data_long_deceive_BrE$year_c), 
+               max(data_long_deceive_BrE$year_c), length.out=5)
+
+plot1 <- xyplot(
+  1~1, type="n", xlim=c(-6,.5), ylim=c(0,1),
+  ylab="Interpretator present (%)", xlab="",
+  par.settings=my_settings, axis=axis_all,
+  scales=list(x=list(at=c(-6,-4,-2, 0), label=c(1700, 1800, 1900, 2000)),
+              y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+  panel=function(x,y){
+    panel.polygon(y=plogis(c(deceive_effect_year_AmE$lower, rev(deceive_effect_year_AmE$upper))),
+                  x=c(deceive_effect_year_AmE$x$year_c, rev(deceive_effect_year_AmE$x$year_c)),
+                  border=F, col="steelblue3", alpha=.3)
+    
+    panel.polygon(y=plogis(c(deceive_effect_year_BrE$lower, rev(deceive_effect_year_BrE$upper))),
+                  x=c(deceive_effect_year_BrE$x$year_c, rev(deceive_effect_year_BrE$x$year_c)),
+                  border=F, col="tomato3", alpha=.3)
+    
+    
+    panel.points(y=plogis(deceive_effect_year_AmE$fit), x=deceive_effect_year_AmE$x$year_c, type="l", col="steelblue3")
+    panel.points(y=plogis(deceive_effect_year_BrE$fit), x=deceive_effect_year_BrE$x$year_c, type="l", col="tomato3")
+    
+    panel.dotdiagram(subset(data_long_deceive_AmE, interpretator_present==1)$year_c, 
+                     y_anchor = 1.22, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = F,
+                     set_cex=.3, set_pch=19, set_col = "steelblue3")
+    
+    panel.dotdiagram(subset(data_long_deceive_AmE, interpretator_present==0)$year_c, 
+                     y_anchor = 1.22, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = T,
+                     set_cex=.3, set_pch=1, set_col = "steelblue3")
+
+    panel.dotdiagram(subset(data_long_deceive_BrE, interpretator_present==1)$year_c, 
+                     y_anchor = 1.45, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = F,
+                     set_cex=.3, set_pch=19, set_col = "tomato3")
+    
+    panel.dotdiagram(subset(data_long_deceive_BrE, interpretator_present==0)$year_c, 
+                     y_anchor = 1.45, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = T,
+                     set_cex=.3, set_pch=1, set_col = "tomato3")
+    
+    panel.points(y=tapply(data_long_deceive_AmE$interpretator_present, 
+                          cut(data_long_deceive_AmE$year_c, 
+                              breaks = x_breaks_AmE), mean),
+                 x=(x_breaks_AmE[1:4] + x_breaks_AmE[2:5])/2, col="steelblue3", type="l",
+                 lty=3, alpha=.5, lwd=1, lineend="square")
+    
+    panel.points(y=tapply(data_long_deceive_AmE$interpretator_present, 
+                          cut(data_long_deceive_AmE$year_c, 
+                              breaks = x_breaks_AmE), mean),
+                 x=(x_breaks_AmE[1:4] + x_breaks_AmE[2:5])/2, pch=21, col="steelblue3", 
+                 cex=.3, alpha=.5)
+    
+    
+    panel.points(y=tapply(data_long_deceive_BrE$interpretator_present, 
+                          cut(data_long_deceive_BrE$year_c, 
+                              breaks = x_breaks_BrE), mean),
+                 x=(x_breaks_BrE[1:4] + x_breaks_BrE[2:5])/2, col="tomato3", type="l",
+                 lty=3, alpha=.5, lwd=1, lineend="square")
+    
+    panel.points(y=tapply(data_long_deceive_BrE$interpretator_present, 
+                          cut(data_long_deceive_BrE$year_c, 
+                              breaks = x_breaks_BrE), mean),
+                 x=(x_breaks_BrE[1:4] + x_breaks_BrE[2:5])/2, pch=21, col="tomato3", 
+                 cex=.3, alpha=.5)
+    
+    panel.text(x=.8, y=c(1.22, 1.45), label=c("AmE", "BrE"), adj=0, cex=.8,
+               col=c("steelblue3", "tomato3"))    
+        
+    panel.segments(x0=-6, x1=.5, y0=c(1.22, 1.45), y1=c(1.22, 1.45), lwd=.5, col="grey40")
+    panel.text(x=-6, y=c(1.18, 1.26), label=c("absent", "present"), adj=0, cex=.6, col="grey40")
+    panel.text(x=-5.8, y=.07, label="deceive", font=3, adj=0)
+    })
+
+
+print(plot1, position=c(0,0,.89,.7))
+
+cairo_pdf("./figures/deceive_longterm_perspective.pdf", width=3.3, height=3.3)
+print(plot1, position=c(0,0,.89,.7))
+dev.off()
+```
+
+
+
+
+# Delude
+
+## Data
+```{r}
+data_long_delude <- subset(data_long, verb == "delude")
+rownames(data_long_delude) <- 1:nrow(data_long_delude)
+```
+
+## Data inspection
+```{r}
+structable(variety ~ year_bins_40, data_long_delude)
+```
+
+```{r fig.height=3, fig.width=4.5}
+data_long_delude %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") + xlim(1700, 2020) +
+  labs(title="Delude",
+       subtitle="Cases by Year and Variety (Fiction)")
+```
+
+
+## Model 
+```{r}
+m_long_delude <- glm(
+  interpretator_present ~ year_c + variety, 
+  data=data_long_delude, family="binomial")
+
+display(m_long_delude)
+```
+
+## Model checking
+
+Residual plots
+```{r fig.height=2.5, fig.width=6}
+residualPlots(m_long_delude, layout=c(1,3), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3, fig.width=5, warning=F}
+marginalModelPlots(m_long_delude, layout=c(1,2))
+```
+
+Influence diagnostics
+```{r fig.height=4, fig.width=4}
+outlier_id <- influencePlot(m_long_delude)
+```
+
+Effect of influential cases on coefficients + SEs
+```{r}
+outlier_id <- as.integer(rownames(outlier_id))
+
+m_long_delude_1 <- update(m_long_delude, subset=-outlier_id[1])
+m_long_delude_2 <- update(m_long_delude, subset=-outlier_id[2])
+m_long_delude_3 <- update(m_long_delude, subset=-outlier_id[3])
+m_long_delude_4 <- update(m_long_delude, subset=-outlier_id[4])
+m_long_delude_5 <- update(m_long_delude, subset=-outlier_id[5])
+m_long_delude_all <- update(m_long_delude, subset=-outlier_id)
+
+coef_change <- compareCoefs(
+  m_long_delude, 
+  m_long_delude_1,
+  m_long_delude_2, 
+  m_long_delude_3,
+  m_long_delude_4,
+  m_long_delude_5,
+  m_long_delude_all, digits=2)
+```
+
+
+```{r fig.height=2, fig.width=4}
+plot1 <- xyplot(as.numeric(coef_change[4,]) ~ 1:length(coef_change[4,]),
+       scales=list(x=list(at=1:7,labels=1:7)),
+       par.settings=my_settings, axis=axis_L, ylim=c(-3,.1), pch=19,
+       xlab.top="Year (95% CI)",
+       xlab="", ylab="",
+       panel=function(x,y,...){
+         panel.xyplot(x,y,...)
+         panel.abline(h=0, col="grey")
+         panel.arrows(x0=x, x1=x, 
+                      y0=y-2*as.numeric(coef_change[5,]), 
+                      y1=y+2*as.numeric(coef_change[5,]),
+                      code=3, angle=90, length=.03)
+       })
+plot2 <- xyplot(as.numeric(coef_change[7,]) ~ 1:length(coef_change[7,]),
+       scales=list(x=list(at=1:7,labels=1:7)),
+       par.settings=my_settings, axis=axis_L, ylim=c(-.6,1.3), pch=19,
+       xlab.top="Variety (95% CI)",
+       xlab="", ylab="",
+       panel=function(x,y,...){
+         panel.xyplot(x,y,...)
+         panel.abline(h=0, col="grey")
+         panel.arrows(x0=x, x1=x, 
+                      y0=y-2*as.numeric(coef_change[8,]), 
+                      y1=y+2*as.numeric(coef_change[8,]),
+                      code=3, angle=90, length=.03)
+       })
+cowplot::plot_grid(plot1, plot2)
+```
+```{r}
+data_long_delude[outlier_id,]
+```
+
+## Model visualization
+
+```{r fig.width=6, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_long_delude, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=2, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "variety",
+  m_long_delude, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=2, more=T)),
+  main="Variety", xlab="", ylab="")
+
+```
+
+
+
+```{r}
+delude_effect_year_AmE <- effect(
+  "year_c",  m_long_delude, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(subset(data_long_delude, variety=="AmE")$year_c), 
+               max(subset(data_long_delude, variety=="AmE")$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1=1)))
+
+delude_effect_year_BrE <- effect(
+  "year_c",  m_long_delude, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(subset(data_long_delude, variety=="BrE")$year_c), 
+               max(subset(data_long_delude, variety=="BrE")$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1=-1)))
+
+delude_effect_variety <- effect(
+  "variety",  m_long_delude, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    year_c=-as.numeric(coef(m_long_delude)[1]/coef(m_long_delude)[2]))))
+```
+
+```{r}
+data_long_delude_BrE <- subset(
+  data_long_delude, variety=="BrE")
+
+data_long_delude_AmE <- subset(
+  data_long_delude, variety=="AmE")
+```
+
+
+```{r fig.height=3.3, fig.width=3.3}
+x_breaks_AmE = seq(min(data_long_delude_AmE$year_c), 
+               max(data_long_delude_AmE$year_c), length.out=5)
+x_breaks_BrE = seq(min(data_long_delude_BrE$year_c), 
+               max(data_long_delude_BrE$year_c), length.out=5)
+
+plot1 <- xyplot(
+  1~1, type="n", xlim=c(-6,.5), ylim=c(0,1),
+  ylab="Interpretator present (%)", xlab="",
+  par.settings=my_settings, axis=axis_all,
+  scales=list(x=list(at=c(-6,-4,-2, 0), label=c(1700, 1800, 1900, 2000)),
+              y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+  panel=function(x,y){
+    panel.polygon(y=plogis(c(delude_effect_year_AmE$lower, rev(delude_effect_year_AmE$upper))),
+                  x=c(delude_effect_year_AmE$x$year_c, rev(delude_effect_year_AmE$x$year_c)),
+                  border=F, col="steelblue3", alpha=.3)
+    
+    panel.polygon(y=plogis(c(delude_effect_year_BrE$lower, rev(delude_effect_year_BrE$upper))),
+                  x=c(delude_effect_year_BrE$x$year_c, rev(delude_effect_year_BrE$x$year_c)),
+                  border=F, col="tomato3", alpha=.3)
+    
+    
+    panel.points(y=plogis(delude_effect_year_AmE$fit), x=delude_effect_year_AmE$x$year_c, type="l", col="steelblue3")
+    panel.points(y=plogis(delude_effect_year_BrE$fit), x=delude_effect_year_BrE$x$year_c, type="l", col="tomato3")
+    
+    panel.dotdiagram(subset(data_long_delude_AmE, interpretator_present==1)$year_c, 
+                     y_anchor = 1.22, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = F,
+                     set_cex=.3, set_pch=19, set_col = "steelblue3")
+    
+    panel.dotdiagram(subset(data_long_delude_AmE, interpretator_present==0)$year_c, 
+                     y_anchor = 1.22, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = T,
+                     set_cex=.3, set_pch=1, set_col = "steelblue3")
+
+    panel.dotdiagram(subset(data_long_delude_BrE, interpretator_present==1)$year_c, 
+                     y_anchor = 1.45, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = F,
+                     set_cex=.3, set_pch=19, set_col = "tomato3")
+    
+    panel.dotdiagram(subset(data_long_delude_BrE, interpretator_present==0)$year_c, 
+                     y_anchor = 1.45, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = T,
+                     set_cex=.3, set_pch=1, set_col = "tomato3")
+    
+    panel.points(y=tapply(data_long_delude_AmE$interpretator_present, 
+                          cut(data_long_delude_AmE$year_c, 
+                              breaks = x_breaks_AmE), mean),
+                 x=(x_breaks_AmE[1:4] + x_breaks_AmE[2:5])/2, col="steelblue3", type="l",
+                 lty=3, alpha=.5, lwd=1, lineend="square")
+    
+    panel.points(y=tapply(data_long_delude_AmE$interpretator_present, 
+                          cut(data_long_delude_AmE$year_c, 
+                              breaks = x_breaks_AmE), mean),
+                 x=(x_breaks_AmE[1:4] + x_breaks_AmE[2:5])/2, pch=21, col="steelblue3", 
+                 cex=.3, alpha=.5)
+    
+    
+    panel.points(y=tapply(data_long_delude_BrE$interpretator_present, 
+                          cut(data_long_delude_BrE$year_c, 
+                              breaks = x_breaks_BrE), mean),
+                 x=(x_breaks_BrE[1:4] + x_breaks_BrE[2:5])/2, col="tomato3", type="l",
+                 lty=3, alpha=.5, lwd=1, lineend="square")
+    
+    panel.points(y=tapply(data_long_delude_BrE$interpretator_present, 
+                          cut(data_long_delude_BrE$year_c, 
+                              breaks = x_breaks_BrE), mean),
+                 x=(x_breaks_BrE[1:4] + x_breaks_BrE[2:5])/2, pch=21, col="tomato3", 
+                 cex=.3, alpha=.5)
+    
+    panel.text(x=.8, y=c(1.22, 1.45), label=c("AmE", "BrE"), adj=0, cex=.8,
+               col=c("steelblue3", "tomato3"))    
+        
+    panel.segments(x0=-6, x1=.5, y0=c(1.22, 1.45), y1=c(1.22, 1.45), lwd=.5, col="grey40")
+    panel.text(x=-6, y=c(1.18, 1.26), label=c("absent", "present"), adj=0, cex=.6, col="grey40")
+    panel.text(x=-5.8, y=.07, label="delude", font=3, adj=0)
+    })
+
+
+print(plot1, position=c(0,0,.89,.7))
+
+cairo_pdf("./figures/delude_longterm_perspective.pdf", width=3.3, height=3.3)
+print(plot1, position=c(0,0,.89,.7))
+dev.off()
+```
+
+
+
+
+
+
+
+
+
+
+# Fool
+
+## Data
+```{r}
+data_long_fool <- subset(data_long, verb == "fool")
+rownames(data_long_fool) <- 1:nrow(data_long_fool)
+```
+
+## Data inspection
+```{r}
+structable(variety ~ year_bins_40, data_long_fool)
+```
+
+```{r fig.height=3, fig.width=4.5}
+data_long_fool %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") +xlim(1700, 2020) +
+  labs(title="Fool",
+       subtitle="Cases by Year and Variety (Fiction)")
+```
+
+## Model
+```{r}
+m_long_fool <- glm(
+  interpretator_present ~ year_c, 
+  data=data_long_fool, 
+  subset=variety=="AmE", family="binomial")
+
+display(m_long_fool)
+```
+
+## Model checking
+
+Residual plots
+```{r fig.height=2.5, fig.width=6}
+residualPlots(m_long_fool, layout=c(1,3), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3, fig.width=5, warning=F}
+marginalModelPlots(m_long_fool, layout=c(1,2))
+```
+
+Influence diagnostics
+```{r fig.height=4, fig.width=4}
+outlier_id <- influencePlot(m_long_fool)
+```
+
+Effect of influential cases on coefficients + SEs
+```{r}
+outlier_id <- as.integer(rownames(outlier_id))
+
+m_long_fool_1 <- update(m_long_fool, subset=-outlier_id[1])
+m_long_fool_2 <- update(m_long_fool, subset=-outlier_id[2])
+m_long_fool_3 <- update(m_long_fool, subset=-outlier_id[3])
+m_long_fool_4 <- update(m_long_fool, subset=-outlier_id[4])
+m_long_fool_5 <- update(m_long_fool, subset=-outlier_id[5])
+m_long_fool_all <- update(m_long_fool, subset=-outlier_id)
+
+coef_change <- compareCoefs(
+  m_long_fool, 
+  m_long_fool_1,
+  m_long_fool_2, 
+  m_long_fool_3,
+  m_long_fool_4,
+  m_long_fool_5,
+  m_long_fool_all, digits=2)
+```
+
+```{r fig.height=2, fig.width=2}
+xyplot(as.numeric(coef_change[4,]) ~ 1:length(coef_change[4,]),
+       scales=list(x=list(at=1:7,labels=1:7)),
+       par.settings=my_settings, axis=axis_L, ylim=c(-.5,2), pch=19,
+       xlab.top="Year (95% CI)",
+       xlab="", ylab="",
+       panel=function(x,y,...){
+         panel.xyplot(x,y,...)
+         panel.abline(h=0, col="grey")
+         panel.arrows(x0=x, x1=x, 
+                      y0=y-2*as.numeric(coef_change[5,]), 
+                      y1=y+2*as.numeric(coef_change[5,]),
+                      code=3, angle=90, length=.03)
+       })
+```
+
+```{r}
+data_long_fool[outlier_id,]
+```
+
+## Model visualization
+
+```{r fig.width=6, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_long_fool, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=2, more=T)),
+  main="Year", xlab="")
+```
+
+```{r}
+fool_effect_year_AmE <- effect(
+  "year_c",  m_long_fool, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(subset(data_long_fool, variety=="AmE")$year_c), 
+               max(subset(data_long_fool, variety=="AmE")$year_c), 
+               length.out=50)))
+```
+
+```{r}
+data_long_fool_AmE <- subset(
+  data_long_fool, variety=="AmE")
+```
+
+
+```{r fig.height=3.3, fig.width=3.3}
+x_breaks_AmE = seq(min(data_long_fool_AmE$year_c), 
+               max(data_long_fool_AmE$year_c), length.out=5)
+
+plot1 <- xyplot(
+  1~1, type="n", xlim=c(-6,.5), ylim=c(0,1),
+  ylab="Interpretator present (%)", xlab="",
+  par.settings=my_settings, axis=axis_all,
+  scales=list(x=list(at=c(-6,-4,-2, 0), label=c(1700, 1800, 1900, 2000)),
+              y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+  panel=function(x,y){
+    panel.polygon(y=plogis(c(fool_effect_year_AmE$lower, rev(fool_effect_year_AmE$upper))),
+                  x=c(fool_effect_year_AmE$x$year_c, rev(fool_effect_year_AmE$x$year_c)),
+                  border=F, col="steelblue3", alpha=.3)
+
+    panel.points(y=plogis(fool_effect_year_AmE$fit), x=fool_effect_year_AmE$x$year_c, type="l", col="steelblue3")
+
+    panel.dotdiagram(subset(data_long_fool_AmE, interpretator_present==1)$year_c, 
+                     y_anchor = 1.22, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = F,
+                     set_cex=.3, set_pch=19, set_col = "steelblue3")
+    
+    panel.dotdiagram(subset(data_long_fool_AmE, interpretator_present==0)$year_c, 
+                     y_anchor = 1.22, 
+                     seq_min=-6, seq_max=.5, n_bins = 90, scale_y = .015, downwards = T,
+                     set_cex=.3, set_pch=1, set_col = "steelblue3")
+
+    panel.points(y=tapply(data_long_fool_AmE$interpretator_present, 
+                          cut(data_long_fool_AmE$year_c, 
+                              breaks = x_breaks_AmE), mean),
+                 x=(x_breaks_AmE[1:4] + x_breaks_AmE[2:5])/2, col="steelblue3", type="l",
+                 lty=3, alpha=.5, lwd=1, lineend="square")
+    
+    panel.points(y=tapply(data_long_fool_AmE$interpretator_present, 
+                          cut(data_long_fool_AmE$year_c, 
+                              breaks = x_breaks_AmE), mean),
+                 x=(x_breaks_AmE[1:4] + x_breaks_AmE[2:5])/2, pch=21, col="steelblue3", 
+                 cex=.3, alpha=.5)
+    
+    
+    panel.text(x=.8, y=c(1.22), label=c("AmE"), adj=0, cex=.8,
+               col=c("steelblue3"))
+    
+    panel.segments(x0=-6, x1=.5, y0=c(1.22), y1=c(1.22), lwd=.5, col="grey40")
+    panel.text(x=-6, y=c(1.18, 1.26), label=c("absent", "present"), adj=0, cex=.6, col="grey40")
+    panel.text(x=-5.8, y=.07, label="fool", font=3, adj=0)
+    })
+
+
+print(plot1, position=c(0,0,.89,.7))
+
+cairo_pdf("./figures/fool_longterm_perspective.pdf", width=3.3, height=3.3)
+print(plot1, position=c(0,0,.89,.7))
+dev.off()
+```
+
+
+# Combined display
+
+```{r fig.height=3, fig.width=6}
+plot1 <- xyplot(1~1, type="n", xlim=c(-5,.5), ylim=c(0,1),
+       ylab="Interpretator present (%)", xlab="", xlab.top="Verb\n",
+       par.settings=my_settings, axis=axis_L,
+       scales=list(x=list(at=c(-4,-2, 0), label=c(1800, 1900, 2000)),
+                   y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+       panel=function(x,y){
+         panel.polygon(y=plogis(c(deceive_effect_year_AmE$lower, rev(deceive_effect_year_AmE$upper))),
+                       x=c(deceive_effect_year_AmE$x$year_c, rev(deceive_effect_year_AmE$x$year_c)),
+                       border=F, col="grey", alpha=.3)
+         panel.polygon(y=plogis(c(delude_effect_year_AmE$lower, rev(delude_effect_year_AmE$upper))),
+                       x=c(delude_effect_year_AmE$x$year_c, rev(delude_effect_year_AmE$x$year_c)),
+                       border=F, col="grey", alpha=.3)
+         panel.polygon(y=plogis(c(fool_effect_year_AmE$lower, rev(fool_effect_year_AmE$upper))),
+                       x=c(fool_effect_year_AmE$x$year_c, rev(fool_effect_year_AmE$x$year_c)),
+                       border=F, col="grey", alpha=.3)
+         
+         panel.points(y=plogis(deceive_effect_year_AmE$fit), x=deceive_effect_year_AmE$x$year_c, type="l", col=1)
+         panel.points(y=plogis(delude_effect_year_AmE$fit), x=delude_effect_year_AmE$x$year_c, type="l", col=1)
+         panel.points(y=plogis(fool_effect_year_AmE$fit), x=fool_effect_year_AmE$x$year_c, type="l", col=1)
+         
+         panel.points(x=.5, y=.6, pch=16, col="white", cex=1.8)
+         panel.text(x=c(-2.75, .4, -.5), y=c(.75, .6, .3), label=c("fool", "deceive", "delude"), font=3, cex=.9)
+         panel.text(x=-5, y=-.2, label="Variety: AmE; Genre: Fiction", adj=0, cex=.7, col="grey30")
+       })
+
+plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
+       ylab="", xlab="", xlab.top="Variety\n",
+       par.settings=my_settings, axis=axis_L,
+       scales=list(x=list(at=c(1,2), label=c("AmE", "BrE")),
+                   y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+       panel=function(x,y){
+         panel.points(x=1:2, y=plogis(delude_effect_variety$fit), type="l", col=1)
+         panel.points(x=1:2, y=plogis(delude_effect_variety$fit), type="p", col=1, pch=21, fill="white", cex=.6)
+         
+         panel.points(x=1:2, y=plogis(deceive_effect_variety$fit), type="l", col=1)
+         panel.points(x=1:2, y=plogis(deceive_effect_variety$fit), type="p", col=1, pch=19, cex=.6)
+         
+         panel.text(x=2.1, y=plogis(c(delude_effect_variety$fit[2],
+                                      deceive_effect_variety$fit[2]))+c(.0,.01),
+                    label=c("delude", "deceive"), font=3, cex=.8, adj=0)
+         panel.text(x=.8, y=-.2, label="Comparison at the cross-varietal", adj=0, cex=.7, col="grey30")
+         panel.text(x=.8, y=-.25, label="average of 50% verbal interpretators", adj=0, cex=.7, col="grey30")
+         })
+
+print(plot1, position=c(0,.05,.55,1), more=T)
+print(plot2, position=c(.58,.05,.86,1))
+
+cairo_pdf("./figures/summary_longterm.pdf", width=5, height=2.75)
+print(plot1, position=c(0,.05,.55,1), more=T)
+print(plot2, position=c(.58,.05,.86,1))
+dev.off()
+```

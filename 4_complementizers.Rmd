@@ -1,0 +1,376 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+loss of complementizers
+
+all data
+3 models (per interpretator type: nominal, verbal, none)
+random effects: verb
+factors: variety, year
+outcome: complementizer (y vs. n)
+
+```{r}
+source("./r_utils/my_utils.R")
+
+library(vcd)
+library(tidyverse)
+library(lme4)
+library(arm)
+library(car)
+library(effects)
+
+all_data <- read.csv("./data/all_data.csv", stringsAsFactors = T)
+contrasts(all_data$variety) <- contr.sum(2)
+contrasts(all_data$verb) <- contr.sum(3)
+
+str(all_data)
+```
+
+```{r}
+all_data <- subset(all_data, complementizer=="y" | complementizer=="n")
+all_data$complementizer <- droplevels(all_data$complementizer)
+
+all_data$complementizer_present <- ifelse(all_data$complementizer=="y", 1, 0)
+table(all_data$complementizer)
+```
+
+```{r}
+table(all_data$interpretator_type)
+```
+
+# Verbal
+
+
+## Data
+
+```{r}
+comp_verbal <- subset(all_data, interpretator_type=="verbal")
+rownames(comp_verbal) <- 1:nrow(comp_verbal)
+#comp_verbal <- droplevels(comp_verbal)
+str(comp_verbal)
+```
+
+```{r}
+structable(variety ~ year_bins_40, comp_verbal)
+```
+
+```{r fig.height=3, fig.width=4.5}
+comp_verbal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") +
+  labs(title="Verbal",
+       subtitle="Cases by Year and Variety")
+```
+
+```{r fig.height=3, fig.width=4.5}
+comp_verbal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(verb)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") +
+  labs(title="Verbal",
+       subtitle="Cases by Year and Verb")
+```
+
+```{r}
+str(comp_verbal)
+m_comp_verbal <- glm(complementizer_present ~ year_c + variety + verb,
+                     data=comp_verbal, family="binomial")
+
+m_comp_verbal <- glm(complementizer_present ~ poly(year_c, 2) + variety + verb,
+                     data=comp_verbal, family="binomial")
+
+display(m_comp_verbal)
+```
+
+
+```{r fig.width=8, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_comp_verbal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=3, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "variety",
+  m_comp_verbal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=3, more=T)),
+  main="Variety", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "verb",
+  m_comp_verbal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=3, more=F)),
+  main="Verb", xlab="", ylab="")
+```
+
+
+## Model checking
+
+Residual plots
+```{r fig.height=3, fig.width=7}
+car::residualPlots(m_comp_verbal, layout=c(1,4), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3.5, fig.width=6, warning=F}
+car::marginalModelPlots(m_comp_verbal, layout=c(1,2), ylim=c(0,1))
+```
+
+Influence diagnostics
+```{r fig.height=5, fig.width=5}
+car::influencePlot(m_comp_verbal)
+```
+
+```{r}
+comp_verbal[c(1483, 1747, 1748, 1749),]
+```
+
+
+Effect of influential cases on coefficients + SEs
+```{r}
+m_comp_verbal_1 <- update(m_comp_verbal, subset=-1483)
+m_comp_verbal_2 <- update(m_comp_verbal, subset=-1747)
+m_comp_verbal_3 <- update(m_comp_verbal, subset=-1748)
+m_comp_verbal_4 <- update(m_comp_verbal, subset=-1749)
+m_comp_verbal_all <- update(m_comp_verbal, subset=-c(1483, 1747, 1748, 1749))
+
+car::compareCoefs(m_comp_verbal, 
+                  m_comp_verbal_1,
+                  m_comp_verbal_2, 
+                  m_comp_verbal_3,
+                  m_comp_verbal_4,
+                  m_comp_verbal_all, digits=1)
+```
+
+
+
+
+
+# Nominal
+
+
+## Data
+
+```{r}
+comp_nominal <- subset(all_data, interpretator_type=="nominal")
+rownames(comp_nominal) <- 1:nrow(comp_nominal)
+#comp_nominal <- droplevels(comp_nominal)
+str(comp_nominal)
+```
+
+```{r}
+structable(variety ~ year_bins_40, comp_nominal)
+```
+
+```{r fig.height=3, fig.width=4.5}
+comp_nominal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") +
+  labs(title="nominal",
+       subtitle="Cases by Year and Variety")
+```
+
+```{r fig.height=3, fig.width=4.5}
+comp_nominal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(verb)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") +
+  labs(title="nominal",
+       subtitle="Cases by Year and Verb")
+```
+
+```{r}
+str(comp_nominal)
+m_comp_nominal <- glm(complementizer_present ~ year_c + variety + verb,
+                     data=comp_nominal, family="binomial")
+
+m_comp_nominal <- glm(complementizer_present ~ poly(year_c, 2) + variety + verb,
+                     data=comp_nominal, family="binomial")
+
+display(m_comp_nominal)
+```
+
+
+```{r fig.width=8, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_comp_nominal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=3, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "variety",
+  m_comp_nominal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=3, more=T)),
+  main="Variety", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "verb",
+  m_comp_nominal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=3, more=F)),
+  main="Verb", xlab="", ylab="")
+```
+
+
+## Model checking
+
+Residual plots
+```{r fig.height=3, fig.width=7}
+car::residualPlots(m_comp_nominal, layout=c(1,4), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3.5, fig.width=6, warning=F}
+car::marginalModelPlots(m_comp_nominal, layout=c(1,2), ylim=c(0,1))
+```
+
+Influence diagnostics
+```{r fig.height=5, fig.width=5}
+tmp <- influencePlot(m_comp_nominal)
+influencePlot(m_comp_nominal)
+```
+
+```{r}
+comp_nominal[rownames(tmp),]
+```
+
+
+Effect of influential cases on coefficients + SEs
+```{r}
+m_comp_nominal_1 <- update(m_comp_nominal, subset=-23)
+m_comp_nominal_2 <- update(m_comp_nominal, subset=-65)
+m_comp_nominal_3 <- update(m_comp_nominal, subset=-179)
+m_comp_nominal_4 <- update(m_comp_nominal, subset=-330)
+m_comp_nominal_all <- update(m_comp_nominal, subset=-c(23, 65, 179, 330))
+
+car::compareCoefs(m_comp_nominal, 
+                  m_comp_nominal_1,
+                  m_comp_nominal_2, 
+                  m_comp_nominal_3,
+                  m_comp_nominal_4,
+                  m_comp_nominal_all, digits=2)
+```
+
+# None
+
+
+## Data
+
+```{r}
+comp_none <- subset(all_data, interpretator_type=="none")
+rownames(comp_none) <- 1:nrow(comp_none)
+#comp_none <- droplevels(comp_none)
+str(comp_none)
+```
+
+```{r}
+structable(variety ~ year_bins_40, comp_none)
+```
+
+```{r fig.height=3, fig.width=4.5}
+comp_none %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") +
+  labs(title="None",
+       subtitle="Cases by Year and Variety")
+```
+
+```{r fig.height=3, fig.width=4.5}
+comp_none %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
+  facet_grid(rows=vars(verb)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") +
+  labs(title="None",
+       subtitle="Cases by Year and Verb")
+```
+
+```{r}
+str(comp_none)
+m_comp_none <- glm(complementizer_present ~ year_c + variety + verb,
+                     data=comp_none, family="binomial")
+
+m_comp_none <- glm(complementizer_present ~ poly(year_c, 2) + variety + verb,
+                     data=comp_none, family="binomial")
+
+display(m_comp_none)
+```
+
+
+```{r fig.width=8, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_comp_none, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=3, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "variety",
+  m_comp_none, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=3, more=T)),
+  main="Variety", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "verb",
+  m_comp_none, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=3, more=F)),
+  main="Verb", xlab="", ylab="")
+```
+
+
+## Model checking
+
+Residual plots
+```{r fig.height=3, fig.width=7}
+car::residualPlots(m_comp_none, layout=c(1,4), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3.5, fig.width=6, warning=F}
+car::marginalModelPlots(m_comp_none, layout=c(1,2), ylim=c(0,1))
+```
+
+Influence diagnostics
+```{r fig.height=5, fig.width=5}
+tmp <- influencePlot(m_comp_none)
+influencePlot(m_comp_none)
+```
+
+```{r}
+comp_none[rownames(tmp),]
+```
+
+
+Effect of influential cases on coefficients + SEs
+```{r}
+m_comp_none_1 <- update(m_comp_none, subset=-23)
+m_comp_none_2 <- update(m_comp_none, subset=-65)
+m_comp_none_3 <- update(m_comp_none, subset=-179)
+m_comp_none_4 <- update(m_comp_none, subset=-330)
+m_comp_none_all <- update(m_comp_none, subset=-c(23, 65, 179, 330))
+
+car::compareCoefs(m_comp_none, 
+                  m_comp_none_1,
+                  m_comp_none_2, 
+                  m_comp_none_3,
+                  m_comp_none_4,
+                  m_comp_none_all, digits=2)
+```
+
+
