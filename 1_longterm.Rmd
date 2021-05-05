@@ -260,7 +260,7 @@ plot1 <- xyplot(
 
 print(plot1, position=c(0,0,.89,.7))
 
-cairo_pdf("./figures/deceive_longterm_perspective.pdf", width=3.3, height=3.3)
+cairo_pdf("./figures/longterm_deceive.pdf", width=3.3, height=3.3)
 print(plot1, position=c(0,0,.89,.7))
 dev.off()
 ```
@@ -509,7 +509,7 @@ plot1 <- xyplot(
 
 print(plot1, position=c(0,0,.89,.7))
 
-cairo_pdf("./figures/delude_longterm_perspective.pdf", width=3.3, height=3.3)
+cairo_pdf("./figures/longterm_delude.pdf", width=3.3, height=3.3)
 print(plot1, position=c(0,0,.89,.7))
 dev.off()
 ```
@@ -690,7 +690,7 @@ plot1 <- xyplot(
 
 print(plot1, position=c(0,0,.89,.7))
 
-cairo_pdf("./figures/fool_longterm_perspective.pdf", width=3.3, height=3.3)
+cairo_pdf("./figures/longterm_fool.pdf", width=3.3, height=3.3)
 print(plot1, position=c(0,0,.89,.7))
 dev.off()
 ```
@@ -699,7 +699,7 @@ dev.off()
 # Combined display
 
 ```{r fig.height=3, fig.width=6}
-plot1 <- xyplot(1~1, type="n", xlim=c(-5,.5), ylim=c(0,1),
+plot1 <- xyplot(1~1, type="n", xlim=c(-4.3,.5), ylim=c(0,1),
        ylab="Interpretator present (%)", xlab="", xlab.top="Verb\n",
        par.settings=my_settings, axis=axis_L,
        scales=list(x=list(at=c(-4,-2, 0), label=c(1800, 1900, 2000)),
@@ -721,14 +721,14 @@ plot1 <- xyplot(1~1, type="n", xlim=c(-5,.5), ylim=c(0,1),
          
          panel.points(x=.5, y=.6, pch=16, col="white", cex=1.8)
          panel.text(x=c(-2.75, .4, -.5), y=c(.75, .6, .3), label=c("fool", "deceive", "delude"), font=3, cex=.9)
-         panel.text(x=-5, y=-.2, label="Variety: AmE; Genre: Fiction", adj=0, cex=.7, col="grey30")
+         panel.text(x=-4.3, y=-.19, label="Variety: AmE; Genre: Fiction", adj=0, cex=.7, col="grey30")
        })
 
 plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
        ylab="", xlab="", xlab.top="Variety\n",
        par.settings=my_settings, axis=axis_L,
        scales=list(x=list(at=c(1,2), label=c("AmE", "BrE")),
-                   y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+                   y=list(at=c(0, .5, 1), label=c("", "", ""))),
        panel=function(x,y){
          panel.points(x=1:2, y=plogis(delude_effect_variety$fit), type="l", col=1)
          panel.points(x=1:2, y=plogis(delude_effect_variety$fit), type="p", col=1, pch=21, fill="white", cex=.6)
@@ -739,15 +739,16 @@ plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
          panel.text(x=2.1, y=plogis(c(delude_effect_variety$fit[2],
                                       deceive_effect_variety$fit[2]))+c(.0,.01),
                     label=c("delude", "deceive"), font=3, cex=.8, adj=0)
-         panel.text(x=.8, y=-.2, label="Comparison at the cross-varietal", adj=0, cex=.7, col="grey30")
-         panel.text(x=.8, y=-.25, label="average of 50% verbal interpretators", adj=0, cex=.7, col="grey30")
+         panel.text(x=.8, y=-.19, label="Comparison at the ", adj=0, cex=.7, col="grey30")
+         panel.text(x=.8, y=-.25, label="cross-varietal average of ", adj=0, cex=.7, col="grey30")
+         panel.text(x=.8, y=-.31, label="50% verbal interpretators", adj=0, cex=.7, col="grey30")
          })
 
 print(plot1, position=c(0,.05,.55,1), more=T)
-print(plot2, position=c(.58,.05,.86,1))
+print(plot2, position=c(.6,.05,.9,1))
 
-cairo_pdf("./figures/summary_longterm.pdf", width=5, height=2.75)
-print(plot1, position=c(0,.05,.55,1), more=T)
-print(plot2, position=c(.58,.05,.86,1))
+cairo_pdf("./figures/longterm_summary.pdf", width=4.5, height=2.65)
+print(plot1, position=c(0,.06,.6,1), more=T)
+print(plot2, position=c(.64,.06,.92,1))
 dev.off()
 ```

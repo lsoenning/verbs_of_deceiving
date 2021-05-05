@@ -291,7 +291,7 @@ plot1 <- xyplot(
 
 print(plot1, position=c(0,0,.89,.7))
 
-cairo_pdf("./figures/deceive_replacement.pdf", width=3.3, height=3.3)
+cairo_pdf("./figures/replacement_deceive.pdf", width=3.3, height=3.3)
 print(plot1, position=c(0,0,.89,.7))
 dev.off()
 ```
@@ -536,7 +536,7 @@ plot1 <- xyplot(
 
 print(plot1, position=c(0,0,.89,.7))
 
-cairo_pdf("./figures/delude_replacement.pdf", width=3.3, height=3.3)
+cairo_pdf("./figures/replacement_delude.pdf", width=3.3, height=3.3)
 print(plot1, position=c(0,0,.89,.7))
 dev.off()
 ```
@@ -713,7 +713,7 @@ plot1 <- xyplot(
 
 print(plot1, position=c(0,0,.89,.7))
 
-cairo_pdf("./figures/fool_replacement.pdf", width=3.3, height=3.3)
+cairo_pdf("./figures/replacement_fool.pdf", width=3.3, height=3.3)
 print(plot1, position=c(0,0,.89,.7))
 dev.off()
 ```
@@ -754,7 +754,7 @@ plot1 <- xyplot(1~1, type="n", xlim=c(-5,.5), ylim=c(0,1),
                       x=fool_replacement_effect_year_AmE$x$year_c, type="l", col=1)
          
          panel.text(x=c(-2.5, -4.2, -.7), y=c(.8, .3, .5), label=c("fool", "deceive", "delude"), font=3, cex=.9)
-         panel.text(x=-5, y=-.2, label="Variety: AmE; Genre: Fiction", adj=0, cex=.7, col="grey30")
+         panel.text(x=-5, y=-.19, label="Variety: AmE; Genre: Fiction", adj=0, cex=.7, col="grey30")
        })
 
 plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
@@ -776,7 +776,7 @@ plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
          panel.text(x=2.1, y=plogis(c(delude_replacement_effect_variety$fit[2],
                                       deceive_replacement_effect_variety$fit[2]))+c(.01,.05),
                     label=c("delude", "deceive"), font=3, cex=.8, adj=0)
-         panel.text(x=.8, y=-.2, label="Comparison at the cross-varietal", 
+         panel.text(x=.8, y=-.19, label="Comparison at the cross-varietal", 
                     adj=0, cex=.7, col="grey30")
          panel.text(x=.8, y=-.25, label="average of 50% verbal interpretators",
                     adj=0, cex=.7, col="grey30")
@@ -785,7 +785,7 @@ plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
 print(plot1, position=c(0,.05,.55,1), more=T)
 print(plot2, position=c(.58,.05,.86,1))
 
-cairo_pdf("./figures/summary_replacement.pdf", width=5, height=2.75)
+cairo_pdf("./figures/replacement_summary.pdf", width=6, height=3)
 print(plot1, position=c(0,.05,.55,1), more=T)
 print(plot2, position=c(.58,.05,.86,1))
 dev.off()
