@@ -1,0 +1,446 @@
+---
+title: "Short-term diachronic perspective: Loss of interpretators, AmE only"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(effects)
+library(lattice)
+library(latticeExtra)
+library(vcd)
+library(car)
+library(arm)
+
+source("./r_utils/my_utils.R")
+
+all_data <- read.csv("./data/all_data.csv", stringsAsFactors = T)
+all_data$transitivity <- factor(all_data$transitivity, levels=c("transitive", "reflexive", "passive"))
+contrasts(all_data$variety) <- contr.sum(2)
+contrasts(all_data$transitivity) <- contr.sum(3)
+contrasts(all_data$negation) <- contr.sum(2)
+
+all_data$macro_genre <- factor(all_data$macro_genre, levels=levels(all_data$macro_genre)[c(3,1,2)], ordered=T)
+
+contrasts(all_data$macro_genre) <- contr.sum(3)
+data_short_AmE <- subset(all_data, year >= 1975 & variety=="AmE")
+```
+
+
+# Deceive
+
+## Data
+```{r}
+data_short_AmE_deceive <- subset(data_short_AmE, verb == "deceive")
+rownames(data_short_AmE_deceive) <- 1:nrow(data_short_AmE_deceive)
+```
+
+## Data inspection
+```{r}
+structable(variety + macro_genre + negation ~ transitivity, data_short_AmE_deceive)
+```
+
+```{r fig.height=3, fig.width=3}
+data_short_AmE_deceive %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=1) +  
+  facet_grid(rows=vars(macro_genre)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") + xlim(1975, 2020) +
+  labs(title="Deceive",
+       subtitle="Cases by Year and Genre")
+```
+
+
+
+
+## Model 
+```{r}
+m_short_deceive <- glm(
+  interpretator_present ~ year_c + macro_genre + transitivity + negation, 
+  data=data_short_AmE_deceive, family="binomial")
+
+display(m_short_deceive)
+```
+
+
+## Model checking
+
+Residual plots
+```{r fig.height=3, fig.width=12}
+residualPlots(m_short_deceive, layout=c(1,6), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3, fig.width=5, warning=F}
+marginalModelPlots(m_short_deceive, layout=c(1,2))
+```
+
+Influence diagnostics
+```{r fig.height=4, fig.width=4}
+outlier_id <- influencePlot(m_short_deceive)
+```
+
+Effect of influential cases on coefficients + SEs
+```{r}
+outlier_id <- as.integer(rownames(outlier_id))
+
+m_short_deceive_1 <- update(m_short_deceive, subset=-outlier_id[1])
+m_short_deceive_2 <- update(m_short_deceive, subset=-outlier_id[2])
+m_short_deceive_3 <- update(m_short_deceive, subset=-outlier_id[3])
+m_short_deceive_4 <- update(m_short_deceive, subset=-outlier_id[4])
+m_short_deceive_5 <- update(m_short_deceive, subset=-outlier_id)
+
+coef_change <- compareCoefs(
+  m_short_deceive, 
+  m_short_deceive_1,
+  m_short_deceive_2, 
+  m_short_deceive_3,
+  m_short_deceive_4,
+  m_short_deceive_5,digits=2)
+```
+
+```{r}
+data_short_AmE_deceive[outlier_id,]
+```
+
+
+## Model visualization
+
+```{r fig.width=10, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_short_deceive, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=4, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "macro_genre",
+  m_short_deceive, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    year_c = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=4, more=T)),
+  main="Genre", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "negation",
+  m_short_deceive, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    year_c = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
+  main="Negation", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "transitivity",
+  m_short_deceive, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    year_c = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=T)),
+  main="Transitivity", xlab="", ylab="")
+```
+
+
+
+
+
+
+
+
+
+
+# Delude
+
+## Data
+```{r}
+data_short_AmE_delude <- subset(data_short_AmE, verb == "delude")
+rownames(data_short_AmE_delude) <- 1:nrow(data_short_AmE_delude)
+```
+
+## Data inspection
+```{r}
+structable(variety + macro_genre + negation ~ transitivity, data_short_AmE_delude)
+```
+
+
+```{r fig.height=3, fig.width=3}
+data_short_AmE_delude %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=1) +  
+  facet_grid(rows=vars(macro_genre)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") + xlim(1975, 2020) +
+  labs(title="Delude",
+       subtitle="Cases by Year and Genre")
+```
+
+## Model 
+```{r}
+m_short_delude <- glm(
+  interpretator_present ~ year_c + macro_genre + transitivity + negation, 
+  data=data_short_AmE_delude, family="binomial")
+
+display(m_short_delude)
+```
+
+## Model checking
+
+Residual plots
+```{r fig.height=2.5, fig.width=12}
+residualPlots(m_short_delude, layout=c(1,6), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3, fig.width=5, warning=F}
+marginalModelPlots(m_short_delude, layout=c(1,2))
+```
+
+Influence diagnostics
+```{r fig.height=4, fig.width=4}
+outlier_id <- influencePlot(m_short_delude)
+```
+
+Effect of influential cases on coefficients + SEs
+```{r}
+outlier_id <- as.integer(rownames(outlier_id))
+
+m_short_delude_1 <- update(m_short_delude, subset=-outlier_id[1])
+m_short_delude_2 <- update(m_short_delude, subset=-outlier_id[2])
+m_short_delude_3 <- update(m_short_delude, subset=-outlier_id[3])
+m_short_delude_4 <- update(m_short_delude, subset=-outlier_id[4])
+m_short_delude_5 <- update(m_short_delude, subset=-outlier_id[5])
+m_short_delude_6 <- update(m_short_delude, subset=-outlier_id)
+
+coef_change <- compareCoefs(
+  m_short_delude, 
+  m_short_delude_1,
+  m_short_delude_2, 
+  m_short_delude_3,
+  m_short_delude_4,
+  m_short_delude_5,
+  m_short_delude_6, digits=2)
+```
+
+```{r}
+data_short_AmE_delude[outlier_id,]
+```
+
+## Model visualization
+
+
+```{r fig.width=10, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_short_delude, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=4, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "macro_genre",
+  m_short_delude, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    year_c = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=4, more=T)),
+  main="Genre", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "negation",
+  m_short_delude, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    year_c = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
+  main="Negation", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "transitivity",
+  m_short_delude, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    year_c = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=T)),
+  main="Transitivity", xlab="", ylab="")
+```
+
+
+
+
+
+
+
+
+
+
+# Fool
+
+## Data
+```{r}
+data_short_AmE_fool <- subset(data_short_AmE, verb == "fool")
+rownames(data_short_AmE_fool) <- 1:nrow(data_short_AmE_fool)
+```
+
+## Data inspection
+```{r}
+structable(variety + macro_genre + negation ~ transitivity, data_short_AmE_fool)
+```
+
+```{r fig.height=3, fig.width=3}
+data_short_AmE_fool %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=1) +  
+  facet_grid(rows=vars(macro_genre)) + theme_light() + scale_y_continuous(breaks =NULL) +
+  ylab(" ") + xlab(" ") + xlim(1975, 2020) +
+  labs(title="Fool",
+       subtitle="Cases by Year and Genre")
+```
+
+## Model 
+```{r}
+m_short_fool <- glm(
+  interpretator_present ~ year_c + macro_genre + transitivity + negation, 
+  data=data_short_AmE_fool, family="binomial")
+
+display(m_short_fool)
+```
+
+## Model checking
+
+Residual plots
+```{r fig.height=2.5, fig.width=12}
+residualPlots(m_short_fool, layout=c(1,6), tests = F, ask=F)
+```
+
+Marginal model plots
+```{r fig.height=3, fig.width=5, warning=F}
+marginalModelPlots(m_short_fool, layout=c(1,2))
+```
+
+Influence diagnostics
+```{r fig.height=4, fig.width=4}
+outlier_id <-influencePlot(m_short_fool)
+```
+
+Effect of influential cases on coefficients + SEs
+```{r}
+outlier_id <- as.integer(rownames(outlier_id))
+
+m_short_fool_1 <- update(m_short_fool, subset=-outlier_id[1])
+m_short_fool_2 <- update(m_short_fool, subset=-outlier_id[2])
+m_short_fool_3 <- update(m_short_fool, subset=-outlier_id[3])
+m_short_fool_4 <- update(m_short_fool, subset=-outlier_id[4])
+m_short_fool_5 <- update(m_short_fool, subset=-outlier_id[5])
+m_short_fool_all <- update(m_short_fool, subset=-outlier_id)
+
+coef_change <-compareCoefs(
+  m_short_fool, 
+  m_short_fool_1,
+  m_short_fool_2, 
+  m_short_fool_3,
+  m_short_fool_4,
+  m_short_fool_5,
+  m_short_fool_all, digits=2)
+```
+
+
+```{r}
+data_short_AmE_fool[outlier_id,]
+```
+
+## Model visualization
+
+
+```{r fig.width=10, fig.height=3}
+plot(effects::predictorEffect(
+  "year_c",
+  m_short_fool, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response", lim=c(0,1))),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=4, more=T)),
+  main="Year", xlab="")
+
+plot(effects::predictorEffect(
+  "macro_genre",
+  m_short_fool, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    year_c = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=4, more=T)),
+  main="Genre", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "negation",
+  m_short_fool, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    transitivity1 = 0,
+    transitivity2 = 0,
+    year_c = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
+  main="Negation", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "transitivity",
+  m_short_fool, 
+  confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    macro_genre1 = 0,
+    macro_genre2 = 0,
+    year_c = 0,
+    negation1 = 0))), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=T)),
+  main="Transitivity", xlab="", ylab="")
+```
+
+
