@@ -85,13 +85,14 @@ comp_verbal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 ```
 
 ```{r}
-m_comp_verbal <- glm(complementizer_present ~ year_c + variety + verb,
+str(comp_verbal)
+m_comp_verbal <- glm(complementizer_present ~ year_c + variety + verb + negation + genre_binary + transitivity,
                      data=comp_verbal, family="binomial")
 
 display(m_comp_verbal)
 ```
 
-```{r fig.width=6, fig.height=6}
+```{r fig.width=8, fig.height=6}
 plot(allEffects(m_comp_verbal), type="response", ylim=c(0,1))
 ```
 
@@ -196,13 +197,13 @@ comp_nominal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 ```
 
 ```{r}
-m_comp_nominal <- glm(complementizer_present ~ year_c + variety + verb,
+m_comp_nominal <- glm(complementizer_present ~ year_c + variety + verb + negation + genre_binary + transitivity,
                      data=comp_nominal, family="binomial")
 
 display(m_comp_nominal)
 ```
 
-```{r fig.width=6, fig.height=6}
+```{r fig.width=8, fig.height=6}
 plot(allEffects(m_comp_nominal), type="response", ylim=c(0,1))
 ```
 
@@ -306,13 +307,18 @@ comp_none %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 
 ```{r}
 str(comp_none)
-m_comp_none <- glm(complementizer_present ~ year_c + variety + verb,
+m_comp_none <- glm(complementizer_present ~ year_c + variety + verb + negation + genre_binary + transitivity,
                      data=comp_none, family="binomial")
 
 display(m_comp_none)
 
 
 ```
+
+```{r fig.width=8, fig.height=6}
+plot(allEffects(m_comp_none), type="response", ylim=c(0,1))
+```
+
 
 ```{r fig.width=8, fig.height=3}
 plot(effects::predictorEffect(
