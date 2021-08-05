@@ -17,14 +17,14 @@ source("./r_utils/my_utils.R")
 
 all_data <- read.csv("./data/all_data.csv", stringsAsFactors = T)
 all_data$transitivity <- factor(all_data$transitivity, levels=c("transitive", "reflexive", "passive"))
-contrasts(all_data$variety) <- contr.sum(2)
-contrasts(all_data$transitivity) <- contr.sum(3)
-contrasts(all_data$negation) <- contr.sum(2)
-
 all_data$genre_binary <- factor(ifelse(all_data$macro_genre=="spoken", "fiction", as.character(all_data$macro_genre)))
 all_data$genre_binary <- factor(ifelse(all_data$genre_binary=="fiction", "fiction", "non"), levels=c("non", "fiction"))
 
+contrasts(all_data$variety) <- contr.sum(2)
+contrasts(all_data$transitivity) <- contr.sum(3)
+contrasts(all_data$negation) <- contr.sum(2)
 contrasts(all_data$genre_binary) <- contr.sum(2)
+
 data_mid <- subset(all_data, variety=="AmE" & year >= 1810)
 ```
 
@@ -47,7 +47,7 @@ data_mid_deceive %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(genre_binary)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Deceive",
-       subtitle="Cases by Year and Genre (AmE)")
+       subtitle="Cases by Year and Genre (Variety: AmE)")
 ```
 
 ```{r fig.height=4, fig.width=4.5}
@@ -55,7 +55,7 @@ data_mid_deceive %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(transitivity)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Deceive",
-       subtitle="Cases by Year and Transitivity (AmE)")
+       subtitle="Cases by Year and Transitivity (Variety: AmE)")
 ```
 
 ```{r fig.height=3, fig.width=4.5}
@@ -63,7 +63,7 @@ data_mid_deceive %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(negation)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Deceive",
-       subtitle="Cases by Year and Negation (AmE)")
+       subtitle="Cases by Year and Negation (Variety: AmE)")
 ```
 
 
@@ -199,7 +199,7 @@ plot(effects::predictorEffect(
   m_mid_deceive, 
   confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c = 0,
+    year_c = -.2,
     transitivity1 = 0,
     transitivity2 = 0,
     negation1 = 0))), 
@@ -215,7 +215,7 @@ plot(effects::predictorEffect(
     genre_binary1 = 0,
     transitivity1 = 0,
     transitivity2 = 0,
-    year_c = 0))), 
+    year_c = -.2))), 
   axes=list(y=list(type="response",lim=c(0,1))),
   lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
   main="Negation", xlab="", ylab="")
@@ -226,20 +226,14 @@ plot(effects::predictorEffect(
   confidence.level=.95,
   fixed.predictors=list(given.values=c(
     genre_binary1 = 0,
-    year_c = 0,
+    year_c = -.2,
     negation1 = 0))), 
   axes=list(y=list(type="response",lim=c(0,1))),
   lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=T)),
   main="Transitivity", xlab="", ylab="")
 ```
-```{r}
-str(data_mid_deceive)
-```
-
 
 ```{r}
-arm::display(m_mid_deceive)
-
 deceive_effect_year <- effect(
   "year_c",  m_mid_deceive, confidence.level=.95,
   xlevels=list(
@@ -255,7 +249,7 @@ deceive_effect_year <- effect(
 deceive_effect_genre <- effect(
   "genre_binary",  m_mid_deceive, confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c = 0,
+    year_c = -.2,
     transitivity1 = 0,
     transitivity2  = 0,
     negation1 = 0)))
@@ -266,13 +260,13 @@ deceive_effect_negation <- effect(
     genre_binary1 = 0,
     transitivity1 = 0,
     transitivity2  = 0,
-    year_c = 0)))
+    year_c = -.2)))
 
 deceive_effect_transitivity <- effect(
   "transitivity",  m_mid_deceive, confidence.level=.95,
   fixed.predictors=list(given.values=c(
     genre_binary1 = 0,
-    year_c = 0,
+    year_c = -.2,
     negation1 = 0)))
 
 ```
@@ -294,7 +288,7 @@ plot1 <- xyplot(
                   border=F, col="grey", alpha=.5)
     panel.points(y=plogis(deceive_effect_year$fit), 
                  x=deceive_effect_year$x$year_c, type="l", col=1)
-    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 2000; Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
+    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 1990; Genre/Negation/Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
     })
 
 plot2 <- xyplot(
@@ -383,7 +377,7 @@ data_mid_delude %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(genre_binary)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Delude",
-       subtitle="Cases by Year and Genre (AmE)")
+       subtitle="Cases by Year and Genre (Variety: AmE)")
 ```
 
 ```{r fig.height=4, fig.width=4.5}
@@ -391,7 +385,7 @@ data_mid_delude %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(transitivity)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Delude",
-       subtitle="Cases by Year and Transitivity (AmE)")
+       subtitle="Cases by Year and Transitivity (Variety: AmE)")
 ```
 
 ```{r fig.height=3, fig.width=4.5}
@@ -399,7 +393,7 @@ data_mid_delude %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(negation)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Delude",
-       subtitle="Cases by Year and Negation (AmE)")
+       subtitle="Cases by Year and Negation (Variety: AmE)")
 ```
 
 
@@ -535,7 +529,7 @@ plot(effects::predictorEffect(
   m_mid_delude, 
   confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c = 0,
+    year_c = -.2,
     transitivity1 = 0,
     transitivity2 = 0,
     negation1 = 0))), 
@@ -551,7 +545,7 @@ plot(effects::predictorEffect(
     genre_binary1 = 0,
     transitivity1 = 0,
     transitivity2 = 0,
-    year_c = 0))), 
+    year_c = -.2))), 
   axes=list(y=list(type="response",lim=c(0,1))),
   lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
   main="Negation", xlab="", ylab="")
@@ -562,7 +556,7 @@ plot(effects::predictorEffect(
   confidence.level=.95,
   fixed.predictors=list(given.values=c(
     genre_binary1 = 0,
-    year_c = 0,
+    year_c = -.2,
     negation1 = 0))), 
   axes=list(y=list(type="response",lim=c(0,1))),
   lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=T)),
@@ -586,7 +580,7 @@ delude_effect_year <- effect(
 delude_effect_genre <- effect(
   "genre_binary",  m_mid_delude, confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c = 0,
+    year_c = -.2,
     transitivity1 = 0,
     transitivity2  = 0,
     negation1 = 0)))
@@ -597,13 +591,13 @@ delude_effect_negation <- effect(
     genre_binary1 = 0,
     transitivity1 = 0,
     transitivity2  = 0,
-    year_c = 0)))
+    year_c = -.2)))
 
 delude_effect_transitivity <- effect(
   "transitivity",  m_mid_delude, confidence.level=.95,
   fixed.predictors=list(given.values=c(
     genre_binary1 = 0,
-    year_c = 0,
+    year_c = -.2,
     negation1 = 0)))
 
 ```
@@ -626,7 +620,7 @@ plot1 <- xyplot(
                   border=F, col="grey", alpha=.5)
     panel.points(y=plogis(delude_effect_year$fit), 
                  x=delude_effect_year$x$year_c, type="l", col=1)
-    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 2000; Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
+    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 1990; Genre/Negation/Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
     })
 
 plot2 <- xyplot(
@@ -717,7 +711,7 @@ data_mid_fool %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(genre_binary)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Fool",
-       subtitle="Cases by Year and Genre (AmE)")
+       subtitle="Cases by Year and Genre (Variety: AmE)")
 ```
 
 ```{r fig.height=4, fig.width=4.5}
@@ -725,7 +719,7 @@ data_mid_fool %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(transitivity)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Fool",
-       subtitle="Cases by Year and Transitivity (AmE)")
+       subtitle="Cases by Year and Transitivity (Variety: AmE)")
 ```
 
 ```{r fig.height=3, fig.width=4.5}
@@ -733,7 +727,7 @@ data_mid_fool %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(negation)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") + xlim(1810, 2020) +
   labs(title="Fool",
-       subtitle="Cases by Year and Negation (AmE)")
+       subtitle="Cases by Year and Negation (Variety: AmE)")
 ```
 
 
@@ -871,7 +865,7 @@ plot(effects::predictorEffect(
   m_mid_fool, 
   confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c = 0,
+    year_c = -.2,
     transitivity1 = 0,
     transitivity2 = 0,
     negation1 = 0))), 
@@ -887,7 +881,7 @@ plot(effects::predictorEffect(
     genre_binary1 = 0,
     transitivity1 = 0,
     transitivity2 = 0,
-    year_c = 0))), 
+    year_c = -.2))), 
   axes=list(y=list(type="response",lim=c(0,1))),
   lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
   main="Negation", xlab="", ylab="")
@@ -898,7 +892,7 @@ plot(effects::predictorEffect(
   confidence.level=.95,
   fixed.predictors=list(given.values=c(
     genre_binary1 = 0,
-    year_c = 0,
+    year_c = -.2,
     negation1 = 0))), 
   axes=list(y=list(type="response",lim=c(0,1))),
   lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=T)),
@@ -922,7 +916,7 @@ fool_effect_year <- effect(
 fool_effect_genre <- effect(
   "genre_binary",  m_mid_fool, confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c = 0,
+    year_c = -.2,
     transitivity1 = 0,
     transitivity2  = 0,
     negation1 = 0)))
@@ -933,13 +927,13 @@ fool_effect_negation <- effect(
     genre_binary1 = 0,
     transitivity1 = 0,
     transitivity2  = 0,
-    year_c = 0)))
+    year_c = -.2)))
 
 fool_effect_transitivity <- effect(
   "transitivity",  m_mid_fool, confidence.level=.95,
   fixed.predictors=list(given.values=c(
     genre_binary1 = 0,
-    year_c = 0,
+    year_c = -.2,
     negation1 = 0)))
 
 ```
@@ -961,7 +955,7 @@ plot1 <- xyplot(
                   border=F, col="grey", alpha=.5)
     panel.points(y=plogis(fool_effect_year$fit), 
                  x=fool_effect_year$x$year_c, type="l", col=1)
-    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 2000; Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
+    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 1990; Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
     })
 
 plot2 <- xyplot(
@@ -1030,9 +1024,6 @@ dev.off()
 # Combined display
 
 ```{r fig.height=2.5, fig.width=7.5}
-x_breaks = seq(min(data_mid_fool$year_c), 
-               max(data_mid_fool$year_c), length.out=6)
-
 plot1 <- xyplot(
   1~1, type="n", xlim=c(-4,.5), ylim=c(0,1),
   ylab="Interpretator present (%)", xlab="", xlab.top="Year\n",
@@ -1046,19 +1037,19 @@ plot1 <- xyplot(
     panel.polygon(y=plogis(c(delude_effect_year$lower, rev(delude_effect_year$upper))),
                   x=c(delude_effect_year$x$year_c, rev(delude_effect_year$x$year_c)),
                   border=F, col="grey", alpha=.5)
-    panel.polygon(y=plogis(c(fool_effect_year$lower, rev(fool_effect_year$upper))),
-                  x=c(fool_effect_year$x$year_c, rev(fool_effect_year$x$year_c)),
-                  border=F, col="grey", alpha=.5)
+    # panel.polygon(y=plogis(c(fool_effect_year$lower, rev(fool_effect_year$upper))),
+    #               x=c(fool_effect_year$x$year_c, rev(fool_effect_year$x$year_c)),
+    #               border=F, col="grey", alpha=.5)
     
     panel.points(y=plogis(deceive_effect_year$fit), 
-                 x=deceive_effect_year$x$year_c, type="l", col=1)
+                 x=deceive_effect_year$x$year_c, type="l", col=1, lty=3, lineend="square")
     panel.points(y=plogis(delude_effect_year$fit), 
                  x=delude_effect_year$x$year_c, type="l", col=1)
-    panel.points(y=plogis(fool_effect_year$fit), 
-                 x=fool_effect_year$x$year_c, type="l", col=1)
-    panel.text(x=.6, y=c(.95, .7, .6), label=c("fool", "delude", "deceive"),
+    # panel.points(y=plogis(fool_effect_year$fit), 
+    #              x=fool_effect_year$x$year_c, type="l", col=1)
+    panel.text(x=.6, y=c(.95, .7, .6), label=c(" ", "delude", "deceive"),
                font=3, adj=0, cex=.8)
-    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 2000; Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
+    panel.text(x=-4, y=-.2, label="Estimates adjusted to: Year = 1990; Genre/Negation/Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
     })
 
 plot2 <- xyplot(
@@ -1068,35 +1059,34 @@ plot2 <- xyplot(
   scales=list(x=list(at=c(1,2), label=c("Non", "Fiction")),
               y=list(at=c(0, .5, 1), label=c("", "", ""))),
   panel=function(x,y){
-    panel.points(y=plogis(deceive_effect_genre$fit), 
-                 x=1:2, type="l", col=1)
-    panel.points(y=plogis(deceive_effect_genre$fit), 
-                 x=1:2, type="p", col=1, pch=19, cex=.4)
-    
-    panel.points(y=plogis(delude_effect_genre$fit), 
-                 x=1:2-c(.05, .05), type="l", col=1)
-    panel.points(y=plogis(delude_effect_genre$fit), 
-                 x=1:2-c(.05, .05), type="p", col=1, pch=19, cex=.4)
-    
-    panel.points(y=plogis(fool_effect_genre$fit), 
-                 x=1:2+c(.05, .05), type="l", col=1)
-    panel.points(y=plogis(fool_effect_genre$fit),
-                 x=1:2+c(.05, .05), type="p", col=1, pch=19, cex=.4)
-    
     panel.segments(x0=1:2, x1=1:2, 
                    y0=plogis(deceive_effect_genre$upper), 
                    y1=plogis(deceive_effect_genre$lower))
-    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
+    panel.segments(x0=1:2-c(.07, .07), x1=1:2-c(.07, .07), 
                    y0=plogis(delude_effect_genre$upper), 
                    y1=plogis(delude_effect_genre$lower))
-    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05), 
-                   y0=plogis(fool_effect_genre$upper),
-                   y1=plogis(fool_effect_genre$lower))
+    # panel.segments(x0=1:2+c(.07, .07), x1=1:2+c(.07, .07), 
+    #                y0=plogis(fool_effect_genre$upper),
+    #                y1=plogis(fool_effect_genre$lower))
+    
+    panel.points(y=plogis(deceive_effect_genre$fit), 
+                 x=1:2, type="l", col=1, lty=3, lineend="square")
+    panel.points(y=plogis(deceive_effect_genre$fit), 
+                 x=1:2, type="p", col=1, pch=21, fill="white", cex=.4)
+    
+    panel.points(y=plogis(delude_effect_genre$fit), 
+                 x=1:2-c(.07, .07), type="l", col=1)
+    panel.points(y=plogis(delude_effect_genre$fit), 
+                 x=1:2-c(.07, .07), type="p", col=1, pch=19, cex=.4)
+    
+    # panel.points(y=plogis(fool_effect_genre$fit), 
+    #              x=1:2+c(.07, .07), type="l", col=1)
+    # panel.points(y=plogis(fool_effect_genre$fit),
+    #              x=1:2+c(.07, .07), type="p", col=1, pch=19, cex=.4)
     
     panel.text(x=2.1, y=plogis(c(deceive_effect_genre$fit[2], 
-                                 delude_effect_genre$fit[2], 
-                                 fool_effect_genre$fit[2])),
-               label=c("deceive", "delude", "fool"), cex=.8, font=3, adj=0)
+                                 delude_effect_genre$fit[2])),
+               label=c("deceive", "delude"), cex=.8, font=3, adj=0)
     })
 
 
@@ -1107,35 +1097,34 @@ plot3 <- xyplot(
   scales=list(x=list(at=c(1,2), label=c("No", "Yes")),
               y=list(at=c(0, .5, 1), label=c("", "", ""))),
   panel=function(x,y){
-    panel.points(y=plogis(deceive_effect_negation$fit), 
-                 x=1:2, type="l", col=1)
-    panel.points(y=plogis(deceive_effect_negation$fit), 
-                 x=1:2, type="p", col=1, pch=19, cex=.4)
-    
-    panel.points(y=plogis(delude_effect_negation$fit), 
-                 x=1:2-c(.05, .05), type="l", col=1)
-    panel.points(y=plogis(delude_effect_negation$fit), 
-                 x=1:2-c(.05, .05), type="p", col=1, pch=19, cex=.4)
-    
-    panel.points(y=plogis(fool_effect_negation$fit), 
-                 x=1:2+c(.05, .05), type="l", col=1)
-    panel.points(y=plogis(fool_effect_negation$fit), 
-                 x=1:2+c(.05, .05), type="p", col=1, pch=19, cex=.4)
-    
     panel.segments(x0=1:2, x1=1:2, 
                    y0=plogis(deceive_effect_negation$upper), 
                    y1=plogis(deceive_effect_negation$lower))
-    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
+    panel.segments(x0=1:2-c(.07, .07), x1=1:2-c(.07, .07), 
                    y0=plogis(delude_effect_negation$upper), 
                    y1=plogis(delude_effect_negation$lower))
-    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05),
-                   y0=plogis(fool_effect_negation$upper), 
-                   y1=plogis(fool_effect_negation$lower))
+    # panel.segments(x0=1:2+c(.07, .07), x1=1:2+c(.07, .07),
+    #                y0=plogis(fool_effect_negation$upper), 
+    #                y1=plogis(fool_effect_negation$lower))
+    
+    panel.points(y=plogis(deceive_effect_negation$fit), 
+                 x=1:2, type="l", col=1, lty=3, lineend="square")
+    panel.points(y=plogis(deceive_effect_negation$fit), 
+                 x=1:2, type="p", col=1, pch=21, fill="white", cex=.4)
+    
+    panel.points(y=plogis(delude_effect_negation$fit), 
+                 x=1:2-c(.07, .07), type="l", col=1)
+    panel.points(y=plogis(delude_effect_negation$fit), 
+                 x=1:2-c(.07, .07), type="p", col=1, pch=19, cex=.4)
+    
+    # panel.points(y=plogis(fool_effect_negation$fit), 
+    #              x=1:2+c(.07, .07), type="l", col=1)
+    # panel.points(y=plogis(fool_effect_negation$fit), 
+    #              x=1:2+c(.07, .07), type="p", col=1, pch=19, cex=.4)
 
     panel.text(x=2.1, y=plogis(c(deceive_effect_negation$fit[2],
-                                 delude_effect_negation$fit[2], 
-                                 fool_effect_negation$fit[2])),
-               label=c("deceive", "delude", "fool"), cex=.8, font=3, adj=0)
+                                 delude_effect_negation$fit[2])),
+               label=c("deceive", "delude"), cex=.8, font=3, adj=0)
     })
 
 
@@ -1146,49 +1135,48 @@ plot4 <- xyplot(
   scales=list(x=list(at=c(1,2,3), label=c("Trans", "Refl", "Pass")),
               y=list(at=c(0, .5, 1), label=c("", "", ""))),
   panel=function(x,y){
-    panel.points(y=plogis(deceive_effect_transitivity$fit), 
-                 x=1:3, type="l", col=1)
-    panel.points(y=plogis(deceive_effect_transitivity$fit), 
-                 x=1:3, type="p", col=1, pch=19, cex=.4)
-    
-    panel.points(y=plogis(delude_effect_transitivity$fit), 
-                 x=1:3-c(.05, .05, .05), type="l", col=1)
-    panel.points(y=plogis(delude_effect_transitivity$fit), 
-                 x=1:3-c(.05, .05, .05), type="p", col=1, pch=19, cex=.4)
-    
-    panel.points(y=plogis(fool_effect_transitivity$fit), 
-                 x=1:3+c(.05, .05, .05), type="l", col=1)
-    panel.points(y=plogis(fool_effect_transitivity$fit), 
-                 x=1:3+c(.05, .05, .05), type="p", col=1, pch=19, cex=.4)
-    
     panel.segments(x0=1:3, x1=1:3,
                    y0=plogis(deceive_effect_transitivity$upper), 
                    y1=plogis(deceive_effect_transitivity$lower))
-    panel.segments(x0=1:3-c(.05, .05, .05), x1=1:3-c(.05, .05),
+    panel.segments(x0=1:3-c(.07, .07, .07), x1=1:3-c(.07, .07, .07),
                    y0=plogis(delude_effect_transitivity$upper), 
                    y1=plogis(delude_effect_transitivity$lower))
-    panel.segments(x0=1:3+c(.05, .05, .05), x1=1:3+c(.05, .05, .05), 
-                   y0=plogis(fool_effect_transitivity$upper), 
-                   y1=plogis(fool_effect_transitivity$lower))
+    # panel.segments(x0=1:3+c(.07, .07, .07), x1=1:3+c(.07, .07, .07), 
+    #                y0=plogis(fool_effect_transitivity$upper), 
+    #                y1=plogis(fool_effect_transitivity$lower))
     
+    panel.points(y=plogis(deceive_effect_transitivity$fit), 
+                 x=1:3, type="l", col=1, lty=3, lineend="square")
+    panel.points(y=plogis(deceive_effect_transitivity$fit), 
+                 x=1:3, type="p", col=1, pch=21, fill="white", cex=.4)
+    
+    panel.points(y=plogis(delude_effect_transitivity$fit), 
+                 x=1:3-c(.07, .07, .07), type="l", col=1)
+    panel.points(y=plogis(delude_effect_transitivity$fit), 
+                 x=1:3-c(.07, .07, .07), type="p", col=1, pch=19, cex=.4)
+    
+    # panel.points(y=plogis(fool_effect_transitivity$fit), 
+    #              x=1:3+c(.07, .07, .07), type="l", col=1)
+    # panel.points(y=plogis(fool_effect_transitivity$fit), 
+    #              x=1:3+c(.07, .07, .07), type="p", col=1, pch=19, cex=.4)
+
     panel.text(x=3.1, y=plogis(c(deceive_effect_transitivity$fit[3], 
-                                 delude_effect_transitivity$fit[3], 
-                                 fool_effect_transitivity$fit[3])),
-               label=c("deceive", "delude", "fool"), cex=.8, font=3, adj=0)
+                                 delude_effect_transitivity$fit[3])),
+               label=c("deceive", "delude"), cex=.8, font=3, adj=0)
     })
 
 
 print(plot1, position=c(0,0,.31,1), more=T)
-print(plot2, position=c(.35,0,.51,1), more=T)
-print(plot3, position=c(.55,0,.71,1), more=T)
-print(plot4, position=c(.75,0,.93,1))
+print(plot2, position=c(.37,0,.51,1), more=T)
+print(plot3, position=c(.55,0,.69,1), more=T)
+print(plot4, position=c(.74,0,.95,1))
 
 
 cairo_pdf("./figures/midterm_summary.pdf", width=7.5, height=2.5)
 print(plot1, position=c(0,0,.31,1), more=T)
 print(plot2, position=c(.37,0,.51,1), more=T)
-print(plot3, position=c(.57,0,.71,1), more=T)
-print(plot4, position=c(.77,0,.93,1))
+print(plot3, position=c(.55,0,.69,1), more=T)
+print(plot4, position=c(.74,0,.95,1))
 dev.off()
 
 ```

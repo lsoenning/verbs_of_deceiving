@@ -17,18 +17,16 @@ source("./r_utils/my_utils.R")
 
 all_data <- read.csv("./data/all_data.csv", stringsAsFactors = T)
 all_data$transitivity <- factor(all_data$transitivity, levels=c("transitive", "reflexive", "passive"))
-contrasts(all_data$variety) <- contr.sum(2)
-contrasts(all_data$transitivity) <- contr.sum(3)
-contrasts(all_data$negation) <- contr.sum(2)
 
-
-table(all_data$macro_genre)
-table(all_data$macro_genre, all_data$verb)
 all_data$genre_binary <- factor(ifelse(all_data$macro_genre=="spoken", "fiction", as.character(all_data$macro_genre)))
 all_data$genre_binary <- factor(ifelse(all_data$genre_binary=="fiction", "fiction", "non"), levels=c("non", "fiction"))
 
+contrasts(all_data$variety) <- contr.sum(2)
+contrasts(all_data$transitivity) <- contr.sum(3)
+contrasts(all_data$negation) <- contr.sum(2)
 contrasts(all_data$genre_binary) <- contr.sum(2)
-data_short <- subset(all_data, year >= 1975)
+
+data_short <- subset(all_data, year >= 1990)
 ```
 
 
@@ -52,21 +50,6 @@ data_short_deceive %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=1) +
        subtitle="Cases by Year and Genre")
 ```
 
-```{r fig.height=3, fig.width=3}
-data_short_delude %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=1) +  
-  facet_grid(rows=vars(genre_binary)) + theme_light() + scale_y_continuous(breaks =NULL) +
-  ylab(" ") + xlab(" ") + xlim(1975, 2020) +
-  labs(title="Delude",
-       subtitle="Cases by Year and Genre")
-```
-
-```{r fig.height=3, fig.width=3}
-data_short_fool %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=1) +  
-  facet_grid(rows=vars(genre_binary)) + theme_light() + scale_y_continuous(breaks =NULL) +
-  ylab(" ") + xlab(" ") + xlim(1975, 2020) +
-  labs(title="Fool",
-       subtitle="Cases by Year and Genre")
-```
 
 ## Model 
 ```{r}
@@ -115,6 +98,7 @@ coef_change <- compareCoefs(
   m_short_deceive_5,
   m_short_deceive_6, digits=2)
 ```
+
 ```{r fig.height=2, fig.width=10}
 plot1 <- xyplot(as.numeric(coef_change[4,]) ~ 1:length(coef_change[4,]),
        scales=list(x=list(at=1:7,labels=1:7)),
@@ -191,6 +175,7 @@ plot5 <- xyplot(as.numeric(coef_change[19,]) ~ 1:length(coef_change[19,]),
 cowplot::plot_grid(plot1, plot2, plot3, plot4, plot5, ncol=5)
 ```
 
+Inspect outliers
 ```{r}
 data_short_deceive[outlier_id,]
 ```
@@ -327,10 +312,10 @@ x_breaks = seq(min(data_short_deceive$year_c),
                max(data_short_deceive$year_c), length.out=6)
 
 plot1 <- xyplot(
-  1~1, type="n", xlim=c(-.52,.42), ylim=c(0,1),
+  1~1, type="n", xlim=c(-.22,.42), ylim=c(0,1),
   ylab="Interpretator present (%)", xlab="", xlab.top="Year\n",
   par.settings=my_settings, axis=axis_L,
-  scales=list(x=list(at=c(-.4, 0, .4), label=c(1980, 2000, 2020)),
+  scales=list(x=list(at=c(0, .4), label=c(2000, 2020)),
               y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
   panel=function(x,y){
     panel.polygon(y=plogis(c(deceive_effect_year$lower, rev(deceive_effect_year$upper))),
@@ -338,7 +323,7 @@ plot1 <- xyplot(
                   border=F, col="grey", alpha=.5)
     panel.points(y=plogis(deceive_effect_year$fit), 
                  x=deceive_effect_year$x$year_c, type="l", col=1)
-    panel.text(x=-.52, y=-.2, label="Estimates adjusted to: Year = 2000; Variety, Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")    })
+    panel.text(x=-.22, y=-.2, label="Estimates adjusted to: Year = 2000; Variety, Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")    })
 
 plot2 <- xyplot(
   1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
@@ -705,10 +690,10 @@ x_breaks = seq(min(data_short_delude$year_c),
                max(data_short_delude$year_c), length.out=6)
 
 plot1 <- xyplot(
-  1~1, type="n", xlim=c(-.52,.42), ylim=c(0,1),
+  1~1, type="n", xlim=c(-.22,.42), ylim=c(0,1),
   ylab="Interpretator present (%)", xlab="", xlab.top="Year\n",
   par.settings=my_settings, axis=axis_L,
-  scales=list(x=list(at=c(-.4, 0, .4), label=c(1980, 2000, 2020)),
+  scales=list(x=list(at=c(0, .4), label=c(2000, 2020)),
               y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
   panel=function(x,y){
     panel.polygon(y=plogis(c(delude_effect_year$lower, rev(delude_effect_year$upper))),
@@ -716,7 +701,7 @@ plot1 <- xyplot(
                   border=F, col="grey", alpha=.5)
     panel.points(y=plogis(delude_effect_year$fit), 
                  x=delude_effect_year$x$year_c, type="l", col=1)
-    panel.text(x=-.52, y=-.2, label="Estimates adjusted to: Year = 2000; Variety, Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")    })
+    panel.text(x=-.22, y=-.2, label="Estimates adjusted to: Year = 2000; Variety, Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")    })
 
 plot2 <- xyplot(
   1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
@@ -1088,10 +1073,10 @@ x_breaks = seq(min(data_short_fool$year_c),
                max(data_short_fool$year_c), length.out=6)
 
 plot1 <- xyplot(
-  1~1, type="n", xlim=c(-.52,.42), ylim=c(0,1),
+  1~1, type="n", xlim=c(-.22,.42), ylim=c(0,1),
   ylab="Interpretator present (%)", xlab="", xlab.top="Year\n",
   par.settings=my_settings, axis=axis_L,
-  scales=list(x=list(at=c(-.4, 0, .4), label=c(1980, 2000, 2020)),
+  scales=list(x=list(at=c(0, .4), label=c(2000, 2020)),
               y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
   panel=function(x,y){
     panel.polygon(y=plogis(c(fool_effect_year$lower, rev(fool_effect_year$upper))),
@@ -1099,7 +1084,7 @@ plot1 <- xyplot(
                   border=F, col="grey", alpha=.5)
     panel.points(y=plogis(fool_effect_year$fit), 
                  x=fool_effect_year$x$year_c, type="l", col=1)
-    panel.text(x=-.52, y=-.2, label="Estimates adjusted to: Year = 2000; Variety, Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")    })
+    panel.text(x=-.22, y=-.2, label="Estimates adjusted to: Year = 2000; Variety, Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")    })
 
 plot2 <- xyplot(
   1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
@@ -1195,10 +1180,10 @@ x_breaks = seq(min(data_short_fool$year_c),
                max(data_short_fool$year_c), length.out=6)
 
 plot1 <- xyplot(
-  1~1, type="n", xlim=c(-.52,.42), ylim=c(0,1),
+  1~1, type="n", xlim=c(-.22,.42), ylim=c(0,1),
   ylab="Interpretator present (%)", xlab="", xlab.top="Year\n",
   par.settings=my_settings, axis=axis_L,
-  scales=list(x=list(at=c(-.4, 0, .4), label=c(1980, 2000, 2020)),
+  scales=list(x=list(at=c(0, .4), label=c(2000, 2020)),
               y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
   panel=function(x,y){
     panel.polygon(y=plogis(c(deceive_effect_year$lower, rev(deceive_effect_year$upper))),
@@ -1220,7 +1205,7 @@ plot1 <- xyplot(
         delude_effect_year$fit[50], 
         deceive_effect_year$fit[50])), 
       label=c("fool", "delude", "deceive"), font=3, adj=0, cex=.8)
-    panel.text(x=-.52, y=-.2, label="Estimates adjusted to: Year = 2000; Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
+    panel.text(x=-.22, y=-.2, label="Estimates adjusted to: Year = 2000; Genre, Negation, Transitivity: Simple average over conditions", adj=0, cex=.7, col="grey30")
     })
 
 
@@ -1231,10 +1216,19 @@ plot2 <- xyplot(
   scales=list(x=list(at=c(1,2), label=c("AmE", "BrE")),
               y=list(at=c(0, .5, 1), label=c("", "", ""))),
   panel=function(x,y){
+    panel.segments(x0=1:2, x1=1:2, y0=plogis(deceive_effect_variety$upper), 
+                   y1=plogis(deceive_effect_variety$lower))
+    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
+                   y0=plogis(delude_effect_variety$upper), 
+                   y1=plogis(delude_effect_variety$lower))
+    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05), 
+                   y0=plogis(fool_effect_variety$upper), 
+                   y1=plogis(fool_effect_variety$lower))
+    
     panel.points(y=plogis(deceive_effect_variety$fit), 
                  x=1:2, type="l", col=1, lty=3, lineend="square")
     panel.points(y=plogis(deceive_effect_variety$fit), 
-                 x=1:2, type="p", col=1, pch=19, cex=.4)
+                 x=1:2, type="p", col=1, pch=21, fill="white", cex=.4)
     
     panel.points(y=plogis(delude_effect_variety$fit), 
                  x=1:2-c(.05, .05), type="l", col=1)
@@ -1245,15 +1239,6 @@ plot2 <- xyplot(
                  x=1:2+c(.05, .05), type="l", col=1)
     panel.points(y=plogis(fool_effect_variety$fit), 
                  x=1:2+c(.05, .05), type="p", col=1, pch=19, cex=.4)
-    
-    panel.segments(x0=1:2, x1=1:2, y0=plogis(deceive_effect_variety$upper), 
-                   y1=plogis(deceive_effect_variety$lower))
-    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
-                   y0=plogis(delude_effect_variety$upper), 
-                   y1=plogis(delude_effect_variety$lower))
-    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05), 
-                   y0=plogis(fool_effect_variety$upper), 
-                   y1=plogis(fool_effect_variety$lower))
 
     panel.text(x=2.1, y=plogis(c(deceive_effect_variety$fit[2], delude_effect_variety$fit[2], fool_effect_variety$fit[2])),
                label=c("deceive", "delude", "fool"), cex=.8, font=3, adj=0)
@@ -1267,10 +1252,19 @@ plot3 <- xyplot(
   scales=list(x=list(at=c(1,2), label=c("Non", "Fiction")),
               y=list(at=c(0, .5, 1), label=c("", "", ""))),
   panel=function(x,y){
+    panel.segments(x0=1:2, x1=1:2, y0=plogis(deceive_effect_genre$upper), 
+                   y1=plogis(deceive_effect_genre$lower))
+    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
+                   y0=plogis(delude_effect_genre$upper), 
+                   y1=plogis(delude_effect_genre$lower))
+    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05), 
+                   y0=plogis(fool_effect_genre$upper), 
+                   y1=plogis(fool_effect_genre$lower))
+    
     panel.points(y=plogis(deceive_effect_genre$fit), 
                  x=1:2, type="l", col=1, lty=3, lineend="square")
     panel.points(y=plogis(deceive_effect_genre$fit), 
-                 x=1:2, type="p", col=1, pch=19, cex=.4)
+                 x=1:2, type="p", col=1, pch=21, fill="white", cex=.4)
     
     panel.points(y=plogis(delude_effect_genre$fit), 
                  x=1:2-c(.05, .05), type="l", col=1)
@@ -1281,15 +1275,6 @@ plot3 <- xyplot(
                  x=1:2+c(.05, .05), type="l", col=1)
     panel.points(y=plogis(fool_effect_genre$fit), 
                  x=1:2+c(.05, .05), type="p", col=1, pch=19, cex=.4)
-    
-    panel.segments(x0=1:2, x1=1:2, y0=plogis(deceive_effect_genre$upper), 
-                   y1=plogis(deceive_effect_genre$lower))
-    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
-                   y0=plogis(delude_effect_genre$upper), 
-                   y1=plogis(delude_effect_genre$lower))
-    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05), 
-                   y0=plogis(fool_effect_genre$upper), 
-                   y1=plogis(fool_effect_genre$lower))
     
     panel.text(x=2.1, y=plogis(c(deceive_effect_genre$fit[2], delude_effect_genre$fit[2], fool_effect_genre$fit[2])),
                label=c("deceive", "delude", "fool"), cex=.8, font=3, adj=0)
@@ -1303,10 +1288,19 @@ plot4 <- xyplot(
   scales=list(x=list(at=c(1,2), label=c("No", "Yes")),
               y=list(at=c(0, .5, 1), label=c("", "", ""))),
   panel=function(x,y){
+    panel.segments(x0=1:2, x1=1:2, y0=plogis(deceive_effect_negation$upper), 
+                   y1=plogis(deceive_effect_negation$lower))
+    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
+                   y0=plogis(delude_effect_negation$upper), 
+                   y1=plogis(delude_effect_negation$lower))
+    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05), 
+                   y0=plogis(fool_effect_negation$upper), 
+                   y1=plogis(fool_effect_negation$lower))
+    
     panel.points(y=plogis(deceive_effect_negation$fit), 
                  x=1:2, type="l", col=1, lty=3, lineend="square")
     panel.points(y=plogis(deceive_effect_negation$fit), 
-                 x=1:2, type="p", col=1, pch=19, cex=.4)
+                 x=1:2, type="p", col=1, pch=21, fill="white", cex=.4)
     
     panel.points(y=plogis(delude_effect_negation$fit), 
                  x=1:2-c(.05, .05), type="l", col=1)
@@ -1317,15 +1311,6 @@ plot4 <- xyplot(
                  x=1:2+c(.05, .05), type="l", col=1)
     panel.points(y=plogis(fool_effect_negation$fit), 
                  x=1:2+c(.05, .05), type="p", col=1, pch=19, cex=.4)
-    
-    panel.segments(x0=1:2, x1=1:2, y0=plogis(deceive_effect_negation$upper), 
-                   y1=plogis(deceive_effect_negation$lower))
-    panel.segments(x0=1:2-c(.05, .05), x1=1:2-c(.05, .05), 
-                   y0=plogis(delude_effect_negation$upper), 
-                   y1=plogis(delude_effect_negation$lower))
-    panel.segments(x0=1:2+c(.05, .05), x1=1:2+c(.05, .05), 
-                   y0=plogis(fool_effect_negation$upper), 
-                   y1=plogis(fool_effect_negation$lower))
     
     panel.text(x=2.1, y=plogis(c(deceive_effect_negation$fit[2], delude_effect_negation$fit[2], fool_effect_negation$fit[2])),
                label=c("deceive", "delude", "fool"), cex=.8, font=3, adj=0)
@@ -1339,10 +1324,19 @@ plot5 <- xyplot(
   scales=list(x=list(at=c(1,2,3), label=c("Tran", "Refl", "Pass")),
               y=list(at=c(0, .5, 1), label=c("", "", ""))),
   panel=function(x,y){
+    panel.segments(x0=1:3, x1=1:3, y0=plogis(deceive_effect_transitivity$upper),
+                   y1=plogis(deceive_effect_transitivity$lower))
+    panel.segments(x0=1:3-c(.05, .05, .05), x1=1:3-c(.05, .05),
+                   y0=plogis(delude_effect_transitivity$upper), 
+                   y1=plogis(delude_effect_transitivity$lower))
+    panel.segments(x0=1:3+c(.05, .05, .05), x1=1:3+c(.05, .05, .05), 
+                   y0=plogis(fool_effect_transitivity$upper), 
+                   y1=plogis(fool_effect_transitivity$lower))
+    
     panel.points(y=plogis(deceive_effect_transitivity$fit), 
                  x=1:3, type="l", col=1, lty=3, lineend="square")
     panel.points(y=plogis(deceive_effect_transitivity$fit), 
-                 x=1:3, type="p", col=1, pch=19, cex=.4)
+                 x=1:3, type="p", col=1, pch=21, fill="white", cex=.4)
     
     panel.points(y=plogis(delude_effect_transitivity$fit), 
                  x=1:3-c(.05, .05, .05), type="l", col=1)
@@ -1353,15 +1347,7 @@ plot5 <- xyplot(
                  x=1:3+c(.05, .05, .05), type="l", col=1)
     panel.points(y=plogis(fool_effect_transitivity$fit), 
                  x=1:3+c(.05, .05, .05), type="p", col=1, pch=19, cex=.4)
-    
-    panel.segments(x0=1:3, x1=1:3, y0=plogis(deceive_effect_transitivity$upper),
-                   y1=plogis(deceive_effect_transitivity$lower))
-    panel.segments(x0=1:3-c(.05, .05, .05), x1=1:3-c(.05, .05),
-                   y0=plogis(delude_effect_transitivity$upper), 
-                   y1=plogis(delude_effect_transitivity$lower))
-    panel.segments(x0=1:3+c(.05, .05, .05), x1=1:3+c(.05, .05, .05), 
-                   y0=plogis(fool_effect_transitivity$upper), 
-                   y1=plogis(fool_effect_transitivity$lower))
+
     
     panel.text(x=3.1, y=plogis(c(deceive_effect_transitivity$fit[3], delude_effect_transitivity$fit[3], fool_effect_transitivity$fit[3])),
                label=c("deceive", "delude", "fool"), cex=.8, font=3, adj=0)

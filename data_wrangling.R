@@ -123,7 +123,7 @@ all_data$AmE_c <- ifelse(all_data$variety=="AmE", 1, -1)
 # Interpretator
 all_data$interpretator_present <- ifelse(all_data$interpretator_type == "none", 0, 1)
 
-
+# Year
 all_data$year_c <- (all_data$year - 2000)/50
 
 

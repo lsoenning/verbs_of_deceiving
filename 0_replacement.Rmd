@@ -27,6 +27,7 @@ contrasts(all_data$variety) <- contr.sum(2)
 all_data_replacement <- subset(all_data, interpretator_type != "none")
 all_data_replacement$interpretator_verbal <- as.integer(ifelse(all_data_replacement$interpretator_type == "verbal", 1, 0))
 all_data_replacement <- droplevels(all_data_replacement)
+
 contrasts(all_data_replacement$variety) <- contr.sum(2)
 ```
 
@@ -67,7 +68,7 @@ data_long_deceive_replacement %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4)
   facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") +
   labs(title="Deceive",
-       subtitle="Cases with interpretators, by Year and Variety (Fiction)")
+       subtitle="Cases with interpretators, by Year and Variety (Genre: Fiction)")
 ```
 
 
@@ -149,6 +150,7 @@ plot2 <- xyplot(as.numeric(coef_change[7,]) ~ 1:length(coef_change[7,]),
        })
 cowplot::plot_grid(plot1, plot2)
 ```
+
 ```{r}
 data_long_deceive_replacement[outlier_id,]
 ```
@@ -177,6 +179,15 @@ plot(effects::predictorEffect(
 ```
 
 ```{r}
+deceive_replacement_effect_year_average <- effect(
+  "year_c",  m_long_deceive_replacement, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(subset(data_long_deceive_replacement)$year_c), 
+               max(subset(data_long_deceive_replacement)$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1=0)))
+
 deceive_replacement_effect_year_AmE <- effect(
   "year_c",  m_long_deceive_replacement, confidence.level=.95,
   xlevels=list(
@@ -198,7 +209,7 @@ deceive_replacement_effect_year_BrE <- effect(
 deceive_replacement_effect_variety <- effect(
   "variety",  m_long_deceive_replacement, confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c=-as.numeric(coef(m_long_deceive_replacement)[1]/coef(m_long_deceive_replacement)[2]))))
+    year_c=-2))) # =1900
 ```
 
 ```{r}
@@ -319,7 +330,7 @@ data_long_delude_replacement %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) 
   facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") +
   labs(title="Delude",
-       subtitle="Cases with interpretators, by Year and Variety (Fiction)")
+       subtitle="Cases with interpretators, by Year and Variety (Genre: Fiction)")
 ```
 
 ## Model
@@ -422,6 +433,15 @@ plot(effects::predictorEffect(
 ```
 
 ```{r}
+delude_replacement_effect_year_average <- effect(
+  "year_c",  m_long_delude_replacement, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(subset(data_long_delude_replacement)$year_c), 
+               max(subset(data_long_delude_replacement)$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1=0)))
+
 delude_replacement_effect_year_AmE <- effect(
   "year_c",  m_long_delude_replacement, confidence.level=.95,
   xlevels=list(
@@ -443,7 +463,7 @@ delude_replacement_effect_year_BrE <- effect(
 delude_replacement_effect_variety <- effect(
   "variety",  m_long_delude_replacement, confidence.level=.95,
   fixed.predictors=list(given.values=c(
-    year_c=-as.numeric(coef(m_long_delude_replacement)[1]/coef(m_long_delude_replacement)[2]))))
+    year_c=-2))) # = 1900
 ```
 
 ```{r}
@@ -564,7 +584,7 @@ data_long_fool_replacement %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=2) +
   facet_grid(rows=vars(variety)) + theme_light() + scale_y_continuous(breaks =NULL) +
   ylab(" ") + xlab(" ") +
   labs(title="Fool",
-       subtitle="Cases with interpretators, by Year and Variety (Fiction)")
+       subtitle="Cases with interpretators, by Year and Variety (Genre: Fiction)")
 ```
 
 
@@ -724,70 +744,73 @@ dev.off()
 # Combined display
 
 ```{r fig.height=3, fig.width=6}
-plot1 <- xyplot(1~1, type="n", xlim=c(-5,.5), ylim=c(0,1),
+plot1 <- xyplot(1~1, type="n", xlim=c(-6,.5), ylim=c(0,1),
        ylab="Verbal interpretators (%)", xlab="", xlab.top="Verb\n",
        par.settings=my_settings, axis=axis_L,
-       scales=list(x=list(at=c(-4,-2, 0), label=c(1800, 1900, 2000)),
+       scales=list(x=list(at=c(-6, -4,-2, 0), label=c(1700, 1800, 1900, 2000)),
                    y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
        panel=function(x,y){
-         panel.polygon(y=plogis(c(deceive_replacement_effect_year_AmE$lower, 
-                                  rev(deceive_replacement_effect_year_AmE$upper))),
-                       x=c(deceive_replacement_effect_year_AmE$x$year_c, 
-                           rev(deceive_replacement_effect_year_AmE$x$year_c)),
+         panel.polygon(y=plogis(c(deceive_replacement_effect_year_average$lower, 
+                                  rev(deceive_replacement_effect_year_average$upper))),
+                       x=c(deceive_replacement_effect_year_average$x$year_c, 
+                           rev(deceive_replacement_effect_year_average$x$year_c)),
                        border=F, col="grey", alpha=.3)
-         panel.polygon(y=plogis(c(delude_replacement_effect_year_AmE$lower, 
-                                  rev(delude_replacement_effect_year_AmE$upper))),
-                       x=c(delude_replacement_effect_year_AmE$x$year_c, 
-                           rev(delude_replacement_effect_year_AmE$x$year_c)),
+         panel.polygon(y=plogis(c(delude_replacement_effect_year_average$lower, 
+                                  rev(delude_replacement_effect_year_average$upper))),
+                       x=c(delude_replacement_effect_year_average$x$year_c, 
+                           rev(delude_replacement_effect_year_average$x$year_c)),
                        border=F, col="grey", alpha=.3)
-         panel.polygon(y=plogis(c(fool_replacement_effect_year_AmE$lower, 
-                                  rev(fool_replacement_effect_year_AmE$upper))),
-                       x=c(fool_replacement_effect_year_AmE$x$year_c, 
-                           rev(fool_replacement_effect_year_AmE$x$year_c)),
-                       border=F, col="grey", alpha=.3)
+         # panel.polygon(y=plogis(c(fool_replacement_effect_year_average$lower, 
+         #                          rev(fool_replacement_effect_year_average$upper))),
+         #               x=c(fool_replacement_effect_year_average$x$year_c, 
+         #                   rev(fool_replacement_effect_year_average$x$year_c)),
+         #               border=F, col="grey", alpha=.3)
          
-         panel.points(y=plogis(deceive_replacement_effect_year_AmE$fit), 
-                      x=deceive_replacement_effect_year_AmE$x$year_c, type="l", col=1)
-         panel.points(y=plogis(delude_replacement_effect_year_AmE$fit), 
-                      x=delude_replacement_effect_year_AmE$x$year_c, type="l", col=1)
-         panel.points(y=plogis(fool_replacement_effect_year_AmE$fit),
-                      x=fool_replacement_effect_year_AmE$x$year_c, type="l", col=1)
+         panel.points(y=plogis(deceive_replacement_effect_year_average$fit), 
+                      x=deceive_replacement_effect_year_average$x$year_c, type="l", col=1, lty=3, lineend="square")
+         panel.points(y=plogis(delude_replacement_effect_year_average$fit), 
+                      x=delude_replacement_effect_year_average$x$year_c, type="l", col=1)
+         # panel.points(y=plogis(fool_replacement_effect_year_average$fit),
+         #              x=fool_replacement_effect_year_average$x$year_c, type="l", col=1)
          
-         panel.text(x=c(-2.5, -4.2, -.7), y=c(.8, .3, .5), label=c("fool", "deceive", "delude"), font=3, cex=.9)
-         panel.text(x=-5, y=-.19, label="Variety: AmE; Genre: Fiction", adj=0, cex=.7, col="grey30")
+         panel.text(x=c(-2.5, -4.2, -.7), y=c(.8, .5, .3), label=c(" ", "deceive", "delude"), font=3, cex=.9)
+         panel.text(x=-6, y=-.19, label="Adjusted to: Simple average over both varieties", adj=0, cex=.7, col="grey30")
+         panel.text(x=-6, y=-.28, label="Error bars denote 95% uncertainty intervals", adj=0, cex=.7, col="grey30")
+         panel.arrows(x0=-2, x1=-2, y0=.05, y1=.01, code=2, angle=10, length=.05, col="grey")
        })
 
 plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
        ylab="", xlab="", xlab.top="Variety\n",
        par.settings=my_settings, axis=axis_L,
        scales=list(x=list(at=c(1,2), label=c("AmE", "BrE")),
-                   y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+                   y=list(at=c(0, .5, 1), label=c("", "", ""))),
        panel=function(x,y){
-         panel.points(x=1:2, y=plogis(delude_replacement_effect_variety$fit),
-                      type="l", col=1)
-         panel.points(x=1:2, y=plogis(delude_replacement_effect_variety$fit),
-                      type="p", col=1, pch=21, fill="white", cex=.6)
+         panel.segments(x0=c(1,2)+.025, x1=c(1,2)+.025, y0=plogis(delude_replacement_effect_variety$upper), y1=plogis(delude_replacement_effect_variety$lower))
+         panel.segments(x0=c(1,2)-.025, x1=c(1,2)-.025, y0=plogis(deceive_replacement_effect_variety$upper), y1=plogis(deceive_replacement_effect_variety$lower))
          
-         panel.points(x=1:2, y=plogis(deceive_replacement_effect_variety$fit), 
+         panel.points(x=c(1,2)+.025, y=plogis(delude_replacement_effect_variety$fit),
                       type="l", col=1)
-         panel.points(x=1:2, y=plogis(deceive_replacement_effect_variety$fit), 
-                      type="p", col=1, pch=19, cex=.6)
+         panel.points(x=c(1,2)+.025, y=plogis(delude_replacement_effect_variety$fit),
+                      type="p", col=1, pch=19, cex=.4)
+         
+         panel.points(x=c(1,2)-.025, y=plogis(deceive_replacement_effect_variety$fit), 
+                      type="l", col=1, lty=3, lineend="square")
+         panel.points(x=c(1,2)-.025, y=plogis(deceive_replacement_effect_variety$fit), 
+                      type="p", col=1, pch=21, fill="white", cex=.4)
          
          panel.text(x=2.1, y=plogis(c(delude_replacement_effect_variety$fit[2],
-                                      deceive_replacement_effect_variety$fit[2]))+c(.01,.05),
+                                      deceive_replacement_effect_variety$fit[2])),
                     label=c("delude", "deceive"), font=3, cex=.8, adj=0)
-         panel.text(x=.8, y=-.19, label="Comparison at the cross-varietal", 
-                    adj=0, cex=.7, col="grey30")
-         panel.text(x=.8, y=-.25, label="average of 50% verbal interpretators",
+         panel.text(x=.8, y=-.19, label="Adjusted to: Year = 1900", 
                     adj=0, cex=.7, col="grey30")
        })
 
 print(plot1, position=c(0,.05,.55,1), more=T)
 print(plot2, position=c(.58,.05,.86,1))
 
-cairo_pdf("./figures/replacement_summary.pdf", width=6, height=3)
-print(plot1, position=c(0,.05,.55,1), more=T)
-print(plot2, position=c(.58,.05,.86,1))
+cairo_pdf("./figures/replacement_summary.pdf", width=4.5, height=2.65)
+print(plot1, position=c(0,.06,.6,1), more=T)
+print(plot2, position=c(.64,.06,.92,1))
 dev.off()
 ```
 

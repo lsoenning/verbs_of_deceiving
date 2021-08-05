@@ -844,7 +844,7 @@
 "delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into believing","verbal","y","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
 "delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into believing","verbal","y","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
 "delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into believing","verbal","y","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
-"delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into the belief","verbal","y","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
+"delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into the belief","nominal","y","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
 "delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into thinking","verbal","n","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
 "delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into thinking","verbal","n","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
 "delude","BrE","newspapers_1990_1994","News",1991,"transitive","n","into thinking","verbal","n","1980-2000","1980-2020","1950-2020","non-fiction",-1,1,-0.18
@@ -2260,7 +2260,7 @@
 "deceive","AmE","COHA","Magazine",1942,"reflexive","y","by imagining","verbal","y","1940-1960","1940-1980","1850-1950","non-fiction",1,1,-1.16
 "deceive","AmE","COCA","Non-fiction",1992,"reflexive","y","into believing","verbal","y","1980-2000","1980-2020","1950-2020","non-fiction",1,1,-0.16
 "deceive","AmE","COHA","Fiction",1854,"reflexive","n","into the belief","nominal","y","1840-1860","1820-1860","1850-1950","fiction",1,1,-2.92
-"deceive","AmE","COHA","Fiction",1875,"reflexive","n","into the belief","nominal","y","1860-1880","1860-1900","1850-1950","fiction",1,1,-2.5
+"deceive","AmE","COHA","Fiction",1875,"reflexive","n","into the belief","nominal","n","1860-1880","1860-1900","1850-1950","fiction",1,1,-2.5
 "deceive","AmE","COHA","News",1923,"reflexive","y","into thinking","verbal","y","1920-1940","1900-1940","1850-1950","non-fiction",1,1,-1.54
 "deceive","AmE","COHA","Fiction",1944,"reflexive","y","none","none","y","1940-1960","1940-1980","1850-1950","fiction",1,0,-1.12
 "deceive","AmE","COCA","Fiction",1991,"reflexive","n","none","none","y","1980-2000","1980-2020","1950-2020","fiction",1,0,-0.18
@@ -3097,3 +3097,8 @@
 "fool","AmE","TAL","News",1989,"reflexive","y","into thinking","verbal","y","1980-2000","1980-2020","1950-2020","non-fiction",1,1,-0.22
 "fool","AmE","TAL","News",1992,"transitive","n","into thinking","verbal","n","1980-2000","1980-2020","1950-2020","non-fiction",1,1,-0.16
 "fool","AmE","TAL","News",1990,"reflexive","y","into believing","verbal","y","1980-2000","1980-2020","1950-2020","non-fiction",1,1,-0.2
+"fool","BrE","BNC","Spoken",1993,"passive","n","into thinking","verbal","y","1980-2000","1980-2020","1950-2020","spoken",-1,1,-0.14
+"fool","BrE","BNC","Spoken",1994,"transitive","n","into thinking","verbal","y","1980-2000","1980-2020","1950-2020","spoken",-1,1,-0.12
+"fool","BrE","BNC2014","Spoken",2012,"passive","n","into thinking","verbal","y","2000-2020","1980-2020","1950-2020","spoken",-1,1,0.24
+"fool","BrE","BNC2015","Spoken",2012,"transitive","n","into believing","verbal","n","2000-2020","1980-2020","1950-2020","spoken",-1,1,0.24
+"fool","BrE","BNC2016","Spoken",2016,"transitive","n","into thinking","verbal","y","2000-2020","1980-2020","1950-2020","spoken",-1,1,0.32

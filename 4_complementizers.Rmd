@@ -22,8 +22,20 @@ library(car)
 library(effects)
 
 all_data <- read.csv("./data/all_data.csv", stringsAsFactors = T)
+
+
+all_data$transitivity <- factor(all_data$transitivity, levels=c("transitive", "reflexive", "passive"))
+
+
+all_data$genre_binary <- factor(ifelse(all_data$macro_genre=="spoken", "fiction", as.character(all_data$macro_genre)))
+all_data$genre_binary <- factor(ifelse(all_data$genre_binary=="fiction", "fiction", "non"), levels=c("non", "fiction"))
+
 contrasts(all_data$variety) <- contr.sum(2)
 contrasts(all_data$verb) <- contr.sum(3)
+contrasts(all_data$transitivity) <- contr.sum(3)
+contrasts(all_data$negation) <- contr.sum(2)
+contrasts(all_data$genre_binary) <- contr.sum(2)
+
 
 str(all_data)
 ```
@@ -73,16 +85,15 @@ comp_verbal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 ```
 
 ```{r}
-str(comp_verbal)
 m_comp_verbal <- glm(complementizer_present ~ year_c + variety + verb,
-                     data=comp_verbal, family="binomial")
-
-m_comp_verbal <- glm(complementizer_present ~ poly(year_c, 2) + variety + verb,
                      data=comp_verbal, family="binomial")
 
 display(m_comp_verbal)
 ```
 
+```{r fig.width=6, fig.height=6}
+plot(allEffects(m_comp_verbal), type="response", ylim=c(0,1))
+```
 
 ```{r fig.width=8, fig.height=3}
 plot(effects::predictorEffect(
@@ -162,7 +173,6 @@ car::compareCoefs(m_comp_verbal,
 comp_nominal <- subset(all_data, interpretator_type=="nominal")
 rownames(comp_nominal) <- 1:nrow(comp_nominal)
 #comp_nominal <- droplevels(comp_nominal)
-str(comp_nominal)
 ```
 
 ```{r}
@@ -186,14 +196,14 @@ comp_nominal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 ```
 
 ```{r}
-str(comp_nominal)
 m_comp_nominal <- glm(complementizer_present ~ year_c + variety + verb,
                      data=comp_nominal, family="binomial")
 
-m_comp_nominal <- glm(complementizer_present ~ poly(year_c, 2) + variety + verb,
-                     data=comp_nominal, family="binomial")
-
 display(m_comp_nominal)
+```
+
+```{r fig.width=6, fig.height=6}
+plot(allEffects(m_comp_nominal), type="response", ylim=c(0,1))
 ```
 
 
@@ -272,7 +282,6 @@ car::compareCoefs(m_comp_nominal,
 comp_none <- subset(all_data, interpretator_type=="none")
 rownames(comp_none) <- 1:nrow(comp_none)
 #comp_none <- droplevels(comp_none)
-str(comp_none)
 ```
 
 ```{r}
@@ -300,12 +309,10 @@ str(comp_none)
 m_comp_none <- glm(complementizer_present ~ year_c + variety + verb,
                      data=comp_none, family="binomial")
 
-m_comp_none <- glm(complementizer_present ~ poly(year_c, 2) + variety + verb,
-                     data=comp_none, family="binomial")
-
 display(m_comp_none)
-```
 
+
+```
 
 ```{r fig.width=8, fig.height=3}
 plot(effects::predictorEffect(
