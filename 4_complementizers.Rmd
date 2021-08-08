@@ -20,6 +20,7 @@ library(lme4)
 library(arm)
 library(car)
 library(effects)
+library(lattice)
 
 all_data <- read.csv("./data/all_data.csv", stringsAsFactors = T)
 
@@ -86,15 +87,12 @@ comp_verbal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 
 ```{r}
 str(comp_verbal)
-m_comp_verbal <- glm(complementizer_present ~ year_c + variety + verb + negation + genre_binary + transitivity,
+m_comp_verbal <- glm(complementizer_present ~ year_c + variety + negation + genre_binary,
                      data=comp_verbal, family="binomial")
 
 display(m_comp_verbal)
 ```
 
-```{r fig.width=8, fig.height=6}
-plot(allEffects(m_comp_verbal), type="response", ylim=c(0,1))
-```
 
 ```{r fig.width=8, fig.height=3}
 plot(effects::predictorEffect(
@@ -102,7 +100,7 @@ plot(effects::predictorEffect(
   m_comp_verbal, 
   confidence.level=.95), 
   axes=list(y=list(type="response", lim=c(0,1))),
-  lattice=list(array=list(row=1, col=1, nrow=1, ncol=3, more=T)),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=4, more=T)),
   main="Year", xlab="")
 
 plot(effects::predictorEffect(
@@ -110,16 +108,24 @@ plot(effects::predictorEffect(
   m_comp_verbal, 
   confidence.level=.95), 
   axes=list(y=list(type="response",lim=c(0,1))),
-  lattice=list(array=list(row=1, col=2, nrow=1, ncol=3, more=T)),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=4, more=T)),
   main="Variety", xlab="", ylab="")
 
 plot(effects::predictorEffect(
-  "verb",
+  "negation",
   m_comp_verbal, 
   confidence.level=.95), 
   axes=list(y=list(type="response",lim=c(0,1))),
-  lattice=list(array=list(row=1, col=3, nrow=1, ncol=3, more=F)),
-  main="Verb", xlab="", ylab="")
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
+  main="Negation", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "genre_binary",
+  m_comp_verbal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=F)),
+  main="Genre", xlab="", ylab="")
 ```
 
 
@@ -162,6 +168,42 @@ car::compareCoefs(m_comp_verbal,
 ```
 
 
+# Extract effects
+
+```{r}
+verbal_effect_year <- effect(
+  "year_c",  m_comp_verbal, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(comp_verbal$year_c), 
+               max(comp_verbal$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1 = 0,
+    genre_binary1 = 0,
+    negation1 = 0)))
+
+verbal_effect_variety <- effect(
+  "variety",  m_comp_verbal, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    year_c = 0,
+    genre_binary1 = 0,
+    negation1 = 0)))
+
+verbal_effect_genre <- effect(
+  "genre_binary",  m_comp_verbal, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    variety1 = 0,
+    year_c = 0,
+    negation1 = 0)))
+
+verbal_effect_negation <- effect(
+  "negation",  m_comp_verbal, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    variety1 = 0,
+    genre_binary1 = 0,
+    year_c = 0)))
+```
+
 
 
 
@@ -197,14 +239,10 @@ comp_nominal %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 ```
 
 ```{r}
-m_comp_nominal <- glm(complementizer_present ~ year_c + variety + verb + negation + genre_binary + transitivity,
+m_comp_nominal <- glm(complementizer_present ~ year_c + variety + negation + genre_binary,
                      data=comp_nominal, family="binomial")
 
 display(m_comp_nominal)
-```
-
-```{r fig.width=8, fig.height=6}
-plot(allEffects(m_comp_nominal), type="response", ylim=c(0,1))
 ```
 
 
@@ -214,7 +252,7 @@ plot(effects::predictorEffect(
   m_comp_nominal, 
   confidence.level=.95), 
   axes=list(y=list(type="response", lim=c(0,1))),
-  lattice=list(array=list(row=1, col=1, nrow=1, ncol=3, more=T)),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=4, more=T)),
   main="Year", xlab="")
 
 plot(effects::predictorEffect(
@@ -222,16 +260,24 @@ plot(effects::predictorEffect(
   m_comp_nominal, 
   confidence.level=.95), 
   axes=list(y=list(type="response",lim=c(0,1))),
-  lattice=list(array=list(row=1, col=2, nrow=1, ncol=3, more=T)),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=4, more=T)),
   main="Variety", xlab="", ylab="")
 
 plot(effects::predictorEffect(
-  "verb",
+  "negation",
   m_comp_nominal, 
   confidence.level=.95), 
   axes=list(y=list(type="response",lim=c(0,1))),
-  lattice=list(array=list(row=1, col=3, nrow=1, ncol=3, more=F)),
-  main="Verb", xlab="", ylab="")
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
+  main="Negation", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "genre_binary",
+  m_comp_nominal, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=F)),
+  main="Genre", xlab="", ylab="")
 ```
 
 
@@ -307,7 +353,7 @@ comp_none %>% ggplot(aes(x=year)) + geom_dotplot(binwidth=4) +
 
 ```{r}
 str(comp_none)
-m_comp_none <- glm(complementizer_present ~ year_c + variety + verb + negation + genre_binary + transitivity,
+m_comp_none <- glm(complementizer_present ~ year_c + variety + negation + genre_binary,
                      data=comp_none, family="binomial")
 
 display(m_comp_none)
@@ -326,7 +372,7 @@ plot(effects::predictorEffect(
   m_comp_none, 
   confidence.level=.95), 
   axes=list(y=list(type="response", lim=c(0,1))),
-  lattice=list(array=list(row=1, col=1, nrow=1, ncol=3, more=T)),
+  lattice=list(array=list(row=1, col=1, nrow=1, ncol=4, more=T)),
   main="Year", xlab="")
 
 plot(effects::predictorEffect(
@@ -334,16 +380,24 @@ plot(effects::predictorEffect(
   m_comp_none, 
   confidence.level=.95), 
   axes=list(y=list(type="response",lim=c(0,1))),
-  lattice=list(array=list(row=1, col=2, nrow=1, ncol=3, more=T)),
+  lattice=list(array=list(row=1, col=2, nrow=1, ncol=4, more=T)),
   main="Variety", xlab="", ylab="")
 
 plot(effects::predictorEffect(
-  "verb",
+  "negation",
   m_comp_none, 
   confidence.level=.95), 
   axes=list(y=list(type="response",lim=c(0,1))),
-  lattice=list(array=list(row=1, col=3, nrow=1, ncol=3, more=F)),
-  main="Verb", xlab="", ylab="")
+  lattice=list(array=list(row=1, col=3, nrow=1, ncol=4, more=T)),
+  main="Negation", xlab="", ylab="")
+
+plot(effects::predictorEffect(
+  "genre_binary",
+  m_comp_none, 
+  confidence.level=.95), 
+  axes=list(y=list(type="response",lim=c(0,1))),
+  lattice=list(array=list(row=1, col=4, nrow=1, ncol=4, more=F)),
+  main="Genre", xlab="", ylab="")
 ```
 
 
@@ -386,4 +440,143 @@ car::compareCoefs(m_comp_none,
                   m_comp_none_all, digits=2)
 ```
 
+# Extract effects
 
+```{r}
+none_effect_year <- effect(
+  "year_c",  m_comp_none, confidence.level=.95,
+  xlevels=list(
+    year_c=seq(min(comp_none$year_c), 
+               max(comp_none$year_c), 
+               length.out=50)),
+  fixed.predictors=list(given.values=c(
+    variety1 = 0,
+    genre_binary1 = 0,
+    negation1 = 0)))
+
+none_effect_variety <- effect(
+  "variety",  m_comp_none, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    year_c = 0,
+    genre_binary1 = 0,
+    negation1 = 0)))
+
+none_effect_genre <- effect(
+  "genre_binary",  m_comp_none, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    variety1 = 0,
+    year_c = 0,
+    negation1 = 0)))
+
+none_effect_negation <- effect(
+  "negation",  m_comp_none, confidence.level=.95,
+  fixed.predictors=list(given.values=c(
+    variety1 = 0,
+    genre_binary1 = 0,
+    year_c = 0)))
+```
+
+
+
+
+# Combined display
+
+```{r fig.height=3, fig.width=8}
+plot1 <- xyplot(1~1, type="n", xlim=c(-6,.5), ylim=c(0,1),
+       ylab="Complementizer present (%)", xlab="", xlab.top="Verb\n",
+       par.settings=my_settings, axis=axis_L,
+       scales=list(x=list(at=c(-6,-4,-2, 0), label=c(1700, 1800, 1900, 2000)),
+                   y=list(at=c(0, .5, 1), label=c(0, 50, 100))),
+       panel=function(x,y){
+         panel.polygon(y=plogis(c(verbal_effect_year$lower, rev(verbal_effect_year$upper))),
+                       x=c(verbal_effect_year$x$year_c, rev(verbal_effect_year$x$year_c)),
+                       border=F, col="grey", alpha=.3)
+         panel.polygon(y=plogis(c(none_effect_year$lower, rev(none_effect_year$upper))),
+                       x=c(none_effect_year$x$year_c, rev(none_effect_year$x$year_c)),
+                       border=F, col="grey", alpha=.3)
+
+         panel.points(y=plogis(verbal_effect_year$fit), x=verbal_effect_year$x$year_c, type="l", col=1, lty=3, lineend="square")
+         panel.points(y=plogis(none_effect_year$fit), x=none_effect_year$x$year_c, type="l", col=1)
+
+         panel.points(x=.5, y=.6, pch=16, col="white", cex=1.8)
+         panel.text(x=c(.4, -.8), y=c(.75, .25), label=c("none", "verbal"), font=3, cex=.9)
+         panel.text(x=-6, y=-.19, label="Adjusted to: Year = 2000; Variety/Genre/Negation: Simple average over conditions", adj=0, cex=.7, col="grey30")
+         panel.text(x=-6, y=-.28, label="Error bars denote 95% uncertainty intervals", adj=0, cex=.7, col="grey30")
+         panel.arrows(x0=0, x1=0, y0=.05, y1=.01, code=2, angle=10, length=.05, col="grey")
+         })
+
+plot2 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
+       ylab="", xlab="", xlab.top="Variety\n",
+       par.settings=my_settings, axis=axis_L,
+       scales=list(x=list(at=c(1,2), label=c("AmE", "BrE")),
+                   y=list(at=c(0, .5, 1), label=c("", "", ""))),
+       panel=function(x,y){
+         panel.segments(x0=c(1,2)+.025, x1=c(1,2)+.025, y0=plogis(none_effect_variety$upper), y1=plogis(none_effect_variety$lower))
+         panel.segments(x0=c(1,2)-.025, x1=c(1,2)-.025, y0=plogis(verbal_effect_variety$upper), y1=plogis(verbal_effect_variety$lower))
+         
+         panel.points(x=c(1,2)+.025, y=plogis(none_effect_variety$fit), type="l", col=1)
+         panel.points(x=c(1,2)+.025, y=plogis(none_effect_variety$fit), type="p", col=1, pch=19, cex=.4)
+         
+         panel.points(x=c(1,2)-.025, y=plogis(verbal_effect_variety$fit), type="l", col=1, lty=3, lineend="square")
+         panel.points(x=c(1,2)-.025, y=plogis(verbal_effect_variety$fit), type="p", col=1, pch=21, fill="white", cex=.4)
+         
+         panel.text(x=2.1, y=plogis(c(none_effect_variety$fit[2],
+                                      verbal_effect_variety$fit[2]))+c(.0,.01),
+                    label=c("none", "verbal"), font=3, cex=.8, adj=0)
+         })
+
+
+plot3 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
+       ylab="", xlab="", xlab.top="Genre\n",
+       par.settings=my_settings, axis=axis_L,
+       scales=list(x=list(at=c(1,2), label=c("Non", "Fiction")),
+                   y=list(at=c(0, .5, 1), label=c("", "", ""))),
+       panel=function(x,y){
+         panel.segments(x0=c(1,2)+.025, x1=c(1,2)+.025, y0=plogis(none_effect_genre$upper), y1=plogis(none_effect_genre$lower))
+         panel.segments(x0=c(1,2)-.025, x1=c(1,2)-.025, y0=plogis(verbal_effect_genre$upper), y1=plogis(verbal_effect_genre$lower))
+         
+         panel.points(x=c(1,2)+.025, y=plogis(none_effect_genre$fit), type="l", col=1)
+         panel.points(x=c(1,2)+.025, y=plogis(none_effect_genre$fit), type="p", col=1, pch=19, cex=.4)
+         
+         panel.points(x=c(1,2)-.025, y=plogis(verbal_effect_genre$fit), type="l", col=1, lty=3, lineend="square")
+         panel.points(x=c(1,2)-.025, y=plogis(verbal_effect_genre$fit), type="p", col=1, pch=21, fill="white", cex=.4)
+         
+         panel.text(x=2.1, y=plogis(c(none_effect_genre$fit[2],
+                                      verbal_effect_genre$fit[2]))+c(.0,.01),
+                    label=c("none", "verbal"), font=3, cex=.8, adj=0)
+         })
+
+
+plot4 <- xyplot(1~1, type="n", xlim=c(.8, 2.2), ylim=c(0,1),
+       ylab="", xlab="", xlab.top="Negation\n",
+       par.settings=my_settings, axis=axis_L,
+       scales=list(x=list(at=c(1,2), label=c("No", "Yes")),
+                   y=list(at=c(0, .5, 1), label=c("", "", ""))),
+       panel=function(x,y){
+         panel.segments(x0=c(1,2)+.025, x1=c(1,2)+.025, y0=plogis(none_effect_negation$upper), y1=plogis(none_effect_negation$lower))
+         panel.segments(x0=c(1,2)-.025, x1=c(1,2)-.025, y0=plogis(verbal_effect_negation$upper), y1=plogis(verbal_effect_negation$lower))
+         
+         panel.points(x=c(1,2)+.025, y=plogis(none_effect_negation$fit), type="l", col=1)
+         panel.points(x=c(1,2)+.025, y=plogis(none_effect_negation$fit), type="p", col=1, pch=19, cex=.4)
+         
+         panel.points(x=c(1,2)-.025, y=plogis(verbal_effect_negation$fit), type="l", col=1, lty=3, lineend="square")
+         panel.points(x=c(1,2)-.025, y=plogis(verbal_effect_negation$fit), type="p", col=1, pch=21, fill="white", cex=.4)
+         
+         panel.text(x=2.1, y=plogis(c(none_effect_negation$fit[2],
+                                      verbal_effect_negation$fit[2]))+c(.0,.01),
+                    label=c("none", "verbal"), font=3, cex=.8, adj=0)
+         })
+
+
+print(plot1, position=c(0,0,.35,1), more=T)
+print(plot2, position=c(.40,0,.55,1), more=T)
+print(plot3, position=c(.60,0,.75,1), more=T)
+print(plot4, position=c(.80,0,.95,1))
+
+cairo_pdf("./figures/complementizers_summary.pdf", width=7, height=2.7)
+print(plot1, position=c(0,.05,.35,1), more=T)
+print(plot2, position=c(.40,.05,.55,1), more=T)
+print(plot3, position=c(.60,.05,.75,1), more=T)
+print(plot4, position=c(.80,.05,.95,1))
+dev.off()
+```
